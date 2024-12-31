@@ -24,6 +24,7 @@ func main() {
 
 	r := gin.Default()
 	r.GET("/tasks", taskController.FindAll)
+	r.GET("/tasks/:id", taskController.FindById)
 	err := r.Run()
 	if err != nil {
 		log.Println(err)

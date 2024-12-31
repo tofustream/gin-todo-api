@@ -2,13 +2,14 @@ package task
 
 type ITaskApplicationService interface {
 	FindAll() ([]TaskDTO, error)
+	FindById(id TaskID) (TaskDTO, error)
 }
 
 type TaskApplicationService struct {
 	repository ITaskRepository
 }
 
-func NewTaskApplicationService(repository ITaskRepository) *TaskApplicationService {
+func NewTaskApplicationService(repository ITaskRepository) ITaskApplicationService {
 	return &TaskApplicationService{repository: repository}
 }
 
@@ -19,4 +20,13 @@ func (s *TaskApplicationService) FindAll() ([]TaskDTO, error) {
 	}
 
 	return tasks, nil
+}
+
+func (s *TaskApplicationService) FindById(id TaskID) (TaskDTO, error) {
+	task, err := s.repository.FindById(id)
+	if err != nil {
+		return TaskDTO{}, err
+	}
+
+	return task, nil
 }

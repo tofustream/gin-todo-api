@@ -4,6 +4,7 @@ import "errors"
 
 type ITaskRepository interface {
 	FindAll() ([]TaskDTO, error)
+	FindById(id TaskID) (TaskDTO, error)
 }
 
 type InMemoryTaskRepository struct {
@@ -16,6 +17,18 @@ func NewInMemoryTaskRepository(tasks map[TaskID]Task) ITaskRepository {
 	}
 }
 
+func createDTOFromTask(task Task) TaskDTO {
+	id := task.ID()
+	description := task.Description()
+	return NewTaskDTO(
+		id.String(),
+		description.Value(),
+		task.CreatedAt().String(),
+		task.UpdatedAt().String(),
+		task.IsCompleted(),
+	)
+}
+
 func (r *InMemoryTaskRepository) FindAll() ([]TaskDTO, error) {
 	if len(r.tasks) == 0 {
 		return nil, errors.New("no tasks found")
@@ -23,18 +36,17 @@ func (r *InMemoryTaskRepository) FindAll() ([]TaskDTO, error) {
 
 	tasks := make([]TaskDTO, 0, len(r.tasks))
 	for _, task := range r.tasks {
-		id := task.ID()
-		description := task.Description()
-		tasks = append(
-			tasks,
-			NewTaskDTO(
-				id.String(),
-				description.Value(),
-				task.CreatedAt().String(),
-				task.UpdatedAt().String(),
-				task.IsCompleted(),
-			),
-		)
+		dto := createDTOFromTask(task)
+		tasks = append(tasks, dto)
 	}
 	return tasks, nil
+}
+
+func (r *InMemoryTaskRepository) FindById(id TaskID) (TaskDTO, error) {
+	task, ok := r.tasks[id]
+	if !ok {
+		return TaskDTO{}, errors.New("task not found")
+	}
+	dto := createDTOFromTask(task)
+	return dto, nil
 }
