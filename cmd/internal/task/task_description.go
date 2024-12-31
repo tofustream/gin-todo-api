@@ -17,6 +17,6 @@ func NewTaskDescription(value string) (TaskDescription, error) {
 	return TaskDescription{value: value}, nil
 }
 
-func (t TaskDescription) Value() string {
+func (t *TaskDescription) Value() string {
 	return t.value
 }
