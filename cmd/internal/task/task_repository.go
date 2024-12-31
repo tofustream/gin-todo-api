@@ -5,6 +5,7 @@ import "errors"
 type ITaskRepository interface {
 	FindAll() ([]TaskDTO, error)
 	FindById(id TaskID) (TaskDTO, error)
+	Add(task Task) error
 }
 
 type InMemoryTaskRepository struct {
@@ -49,4 +50,12 @@ func (r *InMemoryTaskRepository) FindById(id TaskID) (TaskDTO, error) {
 	}
 	dto := createDTOFromTask(task)
 	return dto, nil
+}
+
+func (r *InMemoryTaskRepository) Add(task Task) error {
+	if _, exists := r.tasks[task.ID()]; exists {
+		return errors.New("task already exists")
+	}
+	r.tasks[task.ID()] = task
+	return nil
 }
