@@ -7,12 +7,12 @@ type Task struct {
 	description TaskDescription
 	createdAt   time.Time
 	updatedAt   time.Time
-	isDeleted   bool
+	isCompleted bool
 }
 
 func NewTask(id TaskID, description TaskDescription) Task {
 	now := time.Now()
-	return Task{id: id, description: description, createdAt: now, updatedAt: now, isDeleted: false}
+	return Task{id: id, description: description, createdAt: now, updatedAt: now, isCompleted: false}
 }
 
 func (t *Task) ID() TaskID {
@@ -31,36 +31,36 @@ func (t *Task) UpdatedAt() time.Time {
 	return t.updatedAt
 }
 
-func (t *Task) IsDeleted() bool {
-	return t.isDeleted
+func (t *Task) IsCompleted() bool {
+	return t.isCompleted
 }
 
-func (t *Task) Delete() Task {
+func (t *Task) MarkAsComplete() Task {
 	return Task{
 		id:          t.id,
 		description: t.description,
 		createdAt:   t.createdAt,
 		updatedAt:   time.Now(),
-		isDeleted:   true,
+		isCompleted: true,
 	}
 }
 
-func (t *Task) Restore() Task {
+func (t *Task) MarkAsIncomplete() Task {
 	return Task{
 		id:          t.id,
 		description: t.description,
 		createdAt:   t.createdAt,
 		updatedAt:   time.Now(),
-		isDeleted:   false,
+		isCompleted: false,
 	}
 }
 
-func (t *Task) ChangeDescription(description TaskDescription) Task {
+func (t *Task) UpdateDescription(description TaskDescription) Task {
 	return Task{
 		id:          t.id,
 		description: description,
 		createdAt:   t.createdAt,
 		updatedAt:   time.Now(),
-		isDeleted:   t.isDeleted,
+		isCompleted: t.isCompleted,
 	}
 }
