@@ -6,13 +6,13 @@ import (
 
 func TestNewTaskID(t *testing.T) {
 	tests := []struct {
-		value    uint
-		expected uint
+		value    string
+		expected string
 		hasError bool
 	}{
-		{value: 1, expected: 1, hasError: false},
-		{value: 0, expected: 0, hasError: true},
-		{value: 100, expected: 100, hasError: false},
+		{value: "1", expected: "1", hasError: false},
+		{value: "", expected: "", hasError: true},
+		{value: "100", expected: "100", hasError: false},
 	}
 
 	for _, tt := range tests {
@@ -24,10 +24,10 @@ func TestNewTaskID(t *testing.T) {
 				}
 			} else {
 				if err != nil {
-					t.Errorf("did not expect an error but got one: %v", err)
+					t.Errorf("did not expect an error but got %v", err)
 				}
-				if taskID.Value() != tt.expected {
-					t.Errorf("expected %d but got %d", tt.expected, taskID.Value())
+				if taskID.Value() != tt.expected && tt.value != "" {
+					t.Errorf("expected %v but got %v", tt.expected, taskID.Value())
 				}
 			}
 		})
@@ -35,12 +35,12 @@ func TestNewTaskID(t *testing.T) {
 }
 
 func TestTaskID_Value(t *testing.T) {
-	taskID, err := NewTaskID(10)
+	taskID, err := NewTaskID("10")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if taskID.Value() != 10 {
-		t.Errorf("expected 10 but got %d", taskID.Value())
+	if taskID.Value() != "10" {
+		t.Errorf("expected 10 but got %v", taskID.Value())
 	}
 }
