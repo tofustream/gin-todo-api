@@ -9,7 +9,7 @@ import (
 type ITaskController interface {
 	FindAll(ctx *gin.Context)
 	FindById(ctx *gin.Context)
-	Add(ctx *gin.Context)
+	Register(ctx *gin.Context)
 }
 
 type TaskController struct {
@@ -42,7 +42,7 @@ func (c *TaskController) FindById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"task": task})
 }
 
-func (c *TaskController) Add(ctx *gin.Context) {
+func (c *TaskController) Register(ctx *gin.Context) {
 	var json struct {
 		Description string `json:"description"`
 	}
@@ -51,7 +51,7 @@ func (c *TaskController) Add(ctx *gin.Context) {
 		return
 	}
 
-	task, err := c.service.Add(json.Description)
+	task, err := c.service.Register(json.Description)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

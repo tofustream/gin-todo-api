@@ -25,7 +25,7 @@ func main() {
 	r := gin.Default()
 	r.GET("/tasks", taskController.FindAll)
 	r.GET("/tasks/:id", taskController.FindById)
-	r.POST("/tasks", taskController.Add)
+	r.POST("/tasks", taskController.Register)
 	err := r.Run()
 	if err != nil {
 		log.Println(err)

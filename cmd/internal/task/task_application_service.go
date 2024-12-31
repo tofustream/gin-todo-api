@@ -7,7 +7,7 @@ import (
 type ITaskApplicationService interface {
 	FindAll() ([]TaskDTO, error)
 	FindById(paramID string) (TaskDTO, error)
-	Add(description string) (TaskDTO, error)
+	Register(description string) (TaskDTO, error)
 }
 
 type TaskApplicationService struct {
@@ -47,7 +47,7 @@ func (s *TaskApplicationService) FindById(paramID string) (TaskDTO, error) {
 	return task, nil
 }
 
-func (s *TaskApplicationService) Add(description string) (TaskDTO, error) {
+func (s *TaskApplicationService) Register(description string) (TaskDTO, error) {
 	newUUID, err := uuid.NewRandom()
 	if err != nil {
 		return TaskDTO{}, err
