@@ -1,7 +1,9 @@
-package task
+package task_test
 
 import (
 	"testing"
+
+	"github.com/tofustream/gin-todo-api/cmd/internal/task"
 )
 
 func TestNewTaskDescription(t *testing.T) {
@@ -17,7 +19,7 @@ func TestNewTaskDescription(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewTaskDescription(tt.value)
+			_, err := task.NewTaskDescription(tt.value)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewTaskDescription() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -26,7 +28,7 @@ func TestNewTaskDescription(t *testing.T) {
 }
 
 func TestTaskDescription_Value(t *testing.T) {
-	desc, err := NewTaskDescription("This is a valid task description.")
+	desc, err := task.NewTaskDescription("This is a valid task description.")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}

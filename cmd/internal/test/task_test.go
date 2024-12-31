@@ -1,16 +1,17 @@
-package task
+package task_test
 
 import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/tofustream/gin-todo-api/cmd/internal/task"
 )
 
 func TestNewTask(t *testing.T) {
 	validUUID, _ := uuid.NewRandom()
-	id, _ := NewTaskID(validUUID)
-	description, _ := NewTaskDescription("Test task")
-	task := NewTask(id, description)
+	id, _ := task.NewTaskID(validUUID)
+	description, _ := task.NewTaskDescription("Test task")
+	task := task.NewTask(id, description)
 
 	if task.ID() != id {
 		t.Errorf("expected %v, got %v", id, task.ID())
@@ -25,9 +26,9 @@ func TestNewTask(t *testing.T) {
 
 func TestDeleteTask(t *testing.T) {
 	validUUID, _ := uuid.NewRandom()
-	id, _ := NewTaskID(validUUID)
-	description, _ := NewTaskDescription("Test task")
-	task := NewTask(id, description)
+	id, _ := task.NewTaskID(validUUID)
+	description, _ := task.NewTaskDescription("Test task")
+	task := task.NewTask(id, description)
 	deletedTask := task.MarkAsComplete()
 
 	if !deletedTask.IsCompleted() {
@@ -40,9 +41,9 @@ func TestDeleteTask(t *testing.T) {
 
 func TestRestoreTask(t *testing.T) {
 	validUUID, _ := uuid.NewRandom()
-	id, _ := NewTaskID(validUUID)
-	description, _ := NewTaskDescription("Test task")
-	task := NewTask(id, description)
+	id, _ := task.NewTaskID(validUUID)
+	description, _ := task.NewTaskDescription("Test task")
+	task := task.NewTask(id, description)
 	deletedTask := task.MarkAsComplete()
 	restoredTask := deletedTask.MarkAsIncomplete()
 
@@ -56,10 +57,10 @@ func TestRestoreTask(t *testing.T) {
 
 func TestChangeDescription(t *testing.T) {
 	validUUID, _ := uuid.NewRandom()
-	id, _ := NewTaskID(validUUID)
-	description, _ := NewTaskDescription("Test task")
-	newDescription, _ := NewTaskDescription("Updated task")
-	task := NewTask(id, description)
+	id, _ := task.NewTaskID(validUUID)
+	description, _ := task.NewTaskDescription("Test task")
+	newDescription, _ := task.NewTaskDescription("Updated task")
+	task := task.NewTask(id, description)
 	updatedTask := task.UpdateDescription(newDescription)
 
 	if updatedTask.Description() != newDescription {
@@ -72,9 +73,9 @@ func TestChangeDescription(t *testing.T) {
 
 func TestTaskTimestamps(t *testing.T) {
 	validUUID, _ := uuid.NewRandom()
-	id, _ := NewTaskID(validUUID)
-	description, _ := NewTaskDescription("Test task")
-	task := NewTask(id, description)
+	id, _ := task.NewTaskID(validUUID)
+	description, _ := task.NewTaskDescription("Test task")
+	task := task.NewTask(id, description)
 
 	if task.CreatedAt().IsZero() {
 		t.Errorf("expected createdAt to be set, got %v", task.CreatedAt())

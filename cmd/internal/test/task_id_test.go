@@ -1,9 +1,10 @@
-package task
+package task_test
 
 import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/tofustream/gin-todo-api/cmd/internal/task"
 )
 
 func TestNewTaskID(t *testing.T) {
@@ -20,7 +21,7 @@ func TestNewTaskID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			taskID, err := NewTaskID(tt.value)
+			taskID, err := task.NewTaskID(tt.value)
 			if tt.hasError {
 				if err == nil {
 					t.Errorf("expected an error but got none")
@@ -39,7 +40,7 @@ func TestNewTaskID(t *testing.T) {
 
 func TestTaskID_Value(t *testing.T) {
 	validID, _ := uuid.NewRandom()
-	taskID, err := NewTaskID(validID)
+	taskID, err := task.NewTaskID(validID)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
