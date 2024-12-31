@@ -5,7 +5,7 @@ import (
 )
 
 func TestNewTask(t *testing.T) {
-	id, _ := NewTaskID(1)
+	id, _ := NewTaskID("1")
 	description, _ := NewTaskDescription("Test task")
 	task := NewTask(id, description)
 
@@ -21,7 +21,7 @@ func TestNewTask(t *testing.T) {
 }
 
 func TestDeleteTask(t *testing.T) {
-	id, _ := NewTaskID(1)
+	id, _ := NewTaskID("1")
 	description, _ := NewTaskDescription("Test task")
 	task := NewTask(id, description)
 	deletedTask := task.Delete()
@@ -35,7 +35,7 @@ func TestDeleteTask(t *testing.T) {
 }
 
 func TestRestoreTask(t *testing.T) {
-	id, _ := NewTaskID(1)
+	id, _ := NewTaskID("1")
 	description, _ := NewTaskDescription("Test task")
 	task := NewTask(id, description)
 	deletedTask := task.Delete()
@@ -50,7 +50,7 @@ func TestRestoreTask(t *testing.T) {
 }
 
 func TestChangeDescription(t *testing.T) {
-	id, _ := NewTaskID(1)
+	id, _ := NewTaskID("1")
 	description, _ := NewTaskDescription("Test task")
 	newDescription, _ := NewTaskDescription("Updated task")
 	task := NewTask(id, description)
@@ -65,7 +65,7 @@ func TestChangeDescription(t *testing.T) {
 }
 
 func TestTaskTimestamps(t *testing.T) {
-	id, _ := NewTaskID(1)
+	id, _ := NewTaskID("1")
 	description, _ := NewTaskDescription("Test task")
 	task := NewTask(id, description)
 

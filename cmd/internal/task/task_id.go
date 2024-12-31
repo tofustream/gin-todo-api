@@ -3,16 +3,16 @@ package task
 import "errors"
 
 type TaskID struct {
-	value uint
+	value string
 }
 
-func NewTaskID(value uint) (TaskID, error) {
-	if value == 0 {
-		return TaskID{}, errors.New("task ID is zero")
+func NewTaskID(value string) (TaskID, error) {
+	if value == "" {
+		return TaskID{}, errors.New("task id is required")
 	}
 	return TaskID{value: value}, nil
 }
 
-func (t *TaskID) Value() uint {
+func (t *TaskID) Value() string {
 	return t.value
 }
