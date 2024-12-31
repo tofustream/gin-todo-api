@@ -2,17 +2,20 @@ package task
 
 import (
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 func TestNewTaskID(t *testing.T) {
+	validID, _ := uuid.NewRandom()
+	invalidID := uuid.Nil
 	tests := []struct {
-		value    string
-		expected string
+		value    uuid.UUID
+		expected uuid.UUID
 		hasError bool
 	}{
-		{value: "1", expected: "1", hasError: false},
-		{value: "", expected: "", hasError: true},
-		{value: "100", expected: "100", hasError: false},
+		{value: validID, expected: validID, hasError: false},
+		{value: invalidID, expected: invalidID, hasError: true},
 	}
 
 	for _, tt := range tests {
@@ -26,7 +29,7 @@ func TestNewTaskID(t *testing.T) {
 				if err != nil {
 					t.Errorf("did not expect an error but got %v", err)
 				}
-				if taskID.Value() != tt.expected && tt.value != "" {
+				if taskID.Value() != tt.expected && tt.value != invalidID {
 					t.Errorf("expected %v but got %v", tt.expected, taskID.Value())
 				}
 			}
@@ -35,12 +38,13 @@ func TestNewTaskID(t *testing.T) {
 }
 
 func TestTaskID_Value(t *testing.T) {
-	taskID, err := NewTaskID("10")
+	validID, _ := uuid.NewRandom()
+	taskID, err := NewTaskID(validID)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if taskID.Value() != "10" {
-		t.Errorf("expected 10 but got %v", taskID.Value())
+	if taskID.Value() != validID {
+		t.Errorf("expected %v but got %v", validID, taskID.Value())
 	}
 }

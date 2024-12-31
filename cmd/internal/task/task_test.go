@@ -2,10 +2,13 @@ package task
 
 import (
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 func TestNewTask(t *testing.T) {
-	id, _ := NewTaskID("1")
+	validUUID, _ := uuid.NewRandom()
+	id, _ := NewTaskID(validUUID)
 	description, _ := NewTaskDescription("Test task")
 	task := NewTask(id, description)
 
@@ -21,7 +24,8 @@ func TestNewTask(t *testing.T) {
 }
 
 func TestDeleteTask(t *testing.T) {
-	id, _ := NewTaskID("1")
+	validUUID, _ := uuid.NewRandom()
+	id, _ := NewTaskID(validUUID)
 	description, _ := NewTaskDescription("Test task")
 	task := NewTask(id, description)
 	deletedTask := task.MarkAsComplete()
@@ -35,7 +39,8 @@ func TestDeleteTask(t *testing.T) {
 }
 
 func TestRestoreTask(t *testing.T) {
-	id, _ := NewTaskID("1")
+	validUUID, _ := uuid.NewRandom()
+	id, _ := NewTaskID(validUUID)
 	description, _ := NewTaskDescription("Test task")
 	task := NewTask(id, description)
 	deletedTask := task.MarkAsComplete()
@@ -50,7 +55,8 @@ func TestRestoreTask(t *testing.T) {
 }
 
 func TestChangeDescription(t *testing.T) {
-	id, _ := NewTaskID("1")
+	validUUID, _ := uuid.NewRandom()
+	id, _ := NewTaskID(validUUID)
 	description, _ := NewTaskDescription("Test task")
 	newDescription, _ := NewTaskDescription("Updated task")
 	task := NewTask(id, description)
@@ -65,7 +71,8 @@ func TestChangeDescription(t *testing.T) {
 }
 
 func TestTaskTimestamps(t *testing.T) {
-	id, _ := NewTaskID("1")
+	validUUID, _ := uuid.NewRandom()
+	id, _ := NewTaskID(validUUID)
 	description, _ := NewTaskDescription("Test task")
 	task := NewTask(id, description)
 
