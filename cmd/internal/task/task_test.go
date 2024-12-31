@@ -15,8 +15,8 @@ func TestNewTask(t *testing.T) {
 	if task.Description() != description {
 		t.Errorf("expected %v, got %v", description, task.Description())
 	}
-	if task.IsDeleted() {
-		t.Errorf("expected false, got %v", task.IsDeleted())
+	if task.IsCompleted() {
+		t.Errorf("expected false, got %v", task.IsCompleted())
 	}
 }
 
@@ -24,10 +24,10 @@ func TestDeleteTask(t *testing.T) {
 	id, _ := NewTaskID("1")
 	description, _ := NewTaskDescription("Test task")
 	task := NewTask(id, description)
-	deletedTask := task.Delete()
+	deletedTask := task.MarkAsComplete()
 
-	if !deletedTask.IsDeleted() {
-		t.Errorf("expected true, got %v", deletedTask.IsDeleted())
+	if !deletedTask.IsCompleted() {
+		t.Errorf("expected true, got %v", deletedTask.IsCompleted())
 	}
 	if deletedTask.UpdatedAt().Before(task.UpdatedAt()) {
 		t.Errorf("expected updatedAt to be after %v, got %v", task.UpdatedAt(), deletedTask.UpdatedAt())
@@ -38,11 +38,11 @@ func TestRestoreTask(t *testing.T) {
 	id, _ := NewTaskID("1")
 	description, _ := NewTaskDescription("Test task")
 	task := NewTask(id, description)
-	deletedTask := task.Delete()
-	restoredTask := deletedTask.Restore()
+	deletedTask := task.MarkAsComplete()
+	restoredTask := deletedTask.MarkAsIncomplete()
 
-	if restoredTask.IsDeleted() {
-		t.Errorf("expected false, got %v", restoredTask.IsDeleted())
+	if restoredTask.IsCompleted() {
+		t.Errorf("expected false, got %v", restoredTask.IsCompleted())
 	}
 	if restoredTask.UpdatedAt().Before(deletedTask.UpdatedAt()) {
 		t.Errorf("expected updatedAt to be after %v, got %v", deletedTask.UpdatedAt(), restoredTask.UpdatedAt())
@@ -54,7 +54,7 @@ func TestChangeDescription(t *testing.T) {
 	description, _ := NewTaskDescription("Test task")
 	newDescription, _ := NewTaskDescription("Updated task")
 	task := NewTask(id, description)
-	updatedTask := task.ChangeDescription(newDescription)
+	updatedTask := task.UpdateDescription(newDescription)
 
 	if updatedTask.Description() != newDescription {
 		t.Errorf("expected %v, got %v", newDescription, updatedTask.Description())
