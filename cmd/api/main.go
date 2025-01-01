@@ -26,6 +26,7 @@ func main() {
 	r.GET("/tasks", taskController.FindAll)
 	r.GET("/tasks/:id", taskController.FindById)
 	r.POST("/tasks", taskController.Register)
+	r.PUT("/tasks/:id", taskController.UpdateTaskDescription)
 	err := r.Run()
 	if err != nil {
 		log.Println(err)

@@ -10,6 +10,7 @@ type ITaskController interface {
 	FindAll(ctx *gin.Context)
 	FindById(ctx *gin.Context)
 	Register(ctx *gin.Context)
+	UpdateTaskDescription(ctx *gin.Context)
 }
 
 type TaskController struct {
@@ -58,4 +59,28 @@ func (c *TaskController) Register(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{"task": task})
+}
+
+func (c *TaskController) UpdateTaskDescription(ctx *gin.Context) {
+	paramID := ctx.Param("id")
+	var json struct {
+		Description string `json:"description"`
+	}
+	if err := ctx.ShouldBindJSON(&json); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	command, err := NewUpdateTaskDescriptionCommand(paramID, json.Description)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	dto, err := c.service.Update(command)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"task": dto})
 }

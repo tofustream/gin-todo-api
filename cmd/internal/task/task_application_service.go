@@ -8,6 +8,7 @@ type ITaskApplicationService interface {
 	FindAll() ([]TaskDTO, error)
 	FindById(paramID string) (TaskDTO, error)
 	Register(description string) (TaskDTO, error)
+	Update(command ITaskCommand) (TaskDTO, error)
 }
 
 type TaskApplicationService struct {
@@ -30,12 +31,10 @@ func (s *TaskApplicationService) FindAll() ([]TaskDTO, error) {
 func (s *TaskApplicationService) FindById(paramID string) (TaskDTO, error) {
 	parsedID, err := uuid.Parse(paramID)
 	if err != nil {
-		// ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID"})
 		return TaskDTO{}, err
 	}
 	id, err := NewTaskID(parsedID)
 	if err != nil {
-		// ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return TaskDTO{}, err
 	}
 
@@ -44,7 +43,7 @@ func (s *TaskApplicationService) FindById(paramID string) (TaskDTO, error) {
 		return TaskDTO{}, err
 	}
 
-	return task, nil
+	return taskToDTO(task), nil
 }
 
 func (s *TaskApplicationService) Register(description string) (TaskDTO, error) {
@@ -67,5 +66,9 @@ func (s *TaskApplicationService) Register(description string) (TaskDTO, error) {
 		return TaskDTO{}, err
 	}
 
-	return createDTOFromTask(task), nil
+	return taskToDTO(task), nil
+}
+
+func (s *TaskApplicationService) Update(command ITaskCommand) (TaskDTO, error) {
+	return command.Execute(s.repository)
 }
