@@ -16,6 +16,21 @@ func NewTask(id TaskID, description TaskDescription) Task {
 	return Task{id: id, description: description, createdAt: now, updatedAt: now, isCompleted: false}
 }
 
+func NewTaskWithAllFields(
+	id TaskID,
+	description TaskDescription,
+	createdAt, updatedAt time.Time,
+	isCompleted, isDeleted bool) Task {
+	return Task{
+		id:          id,
+		description: description,
+		createdAt:   createdAt,
+		updatedAt:   updatedAt,
+		isCompleted: isCompleted,
+		isDeleted:   isDeleted,
+	}
+}
+
 func (t *Task) ID() TaskID {
 	return t.id
 }
