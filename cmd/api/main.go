@@ -8,7 +8,7 @@ import (
 	"github.com/tofustream/gin-todo-api/cmd/internal/task"
 )
 
-func main() {
+func setUpForMemory() task.ITaskController {
 	uuid1, _ := uuid.Parse("eda07994-8d54-4a7c-9757-b0f8ea0ba736")
 	uuid2, _ := uuid.Parse("f3b3b3b3-4b3b-4b3b-4b3b-4b3b4b3b4b3b")
 	taskID1, _ := task.NewTaskID(uuid1)
@@ -22,6 +22,12 @@ func main() {
 	taskService := task.NewTaskApplicationService(taskRepository)
 	taskController := task.NewTaskController(taskService)
 
+	return taskController
+}
+
+func main() {
+	taskController := setUpForMemory()
+
 	r := gin.Default()
 	r.GET("/tasks", taskController.FindAll)
 	r.GET("/tasks/:id", taskController.FindById)
@@ -30,6 +36,7 @@ func main() {
 	r.PUT("/tasks/:id/complete", taskController.MarkTaskAsCompleted)
 	r.PUT("/tasks/:id/incomplete", taskController.MarkTaskAsIncompleted)
 	r.DELETE("/tasks/:id", taskController.DeleteTask)
+
 	err := r.Run()
 	if err != nil {
 		log.Println(err)
