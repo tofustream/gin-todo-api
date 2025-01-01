@@ -9,8 +9,8 @@ import (
 )
 
 func main() {
-	uuid1, _ := uuid.NewRandom()
-	uuid2, _ := uuid.NewRandom()
+	uuid1, _ := uuid.Parse("eda07994-8d54-4a7c-9757-b0f8ea0ba736")
+	uuid2, _ := uuid.Parse("f3b3b3b3-4b3b-4b3b-4b3b-4b3b4b3b4b3b")
 	taskID1, _ := task.NewTaskID(uuid1)
 	taskID2, _ := task.NewTaskID(uuid2)
 	description1, _ := task.NewTaskDescription("Task 1")
@@ -27,6 +27,8 @@ func main() {
 	r.GET("/tasks/:id", taskController.FindById)
 	r.POST("/tasks", taskController.Register)
 	r.PUT("/tasks/:id", taskController.UpdateTaskDescription)
+	r.PUT("/tasks/:id/complete", taskController.MarkTaskAsComplete)
+	r.PUT("/tasks/:id/incomplete", taskController.MarkTaskAsIncompleteCommand)
 	err := r.Run()
 	if err != nil {
 		log.Println(err)
