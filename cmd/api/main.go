@@ -4,31 +4,25 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	_ "github.com/lib/pq" // PostgreSQLドライバのインポート
+	"github.com/tofustream/gin-todo-api/cmd/internal/config"
+	"github.com/tofustream/gin-todo-api/cmd/internal/db"
 	"github.com/tofustream/gin-todo-api/cmd/internal/task"
 )
 
-func setUpForMemory() task.ITaskController {
-	uuid1, _ := uuid.Parse("eda07994-8d54-4a7c-9757-b0f8ea0ba736")
-	uuid2, _ := uuid.Parse("f3b3b3b3-4b3b-4b3b-4b3b-4b3b4b3b4b3b")
-	taskID1, _ := task.NewTaskID(uuid1)
-	taskID2, _ := task.NewTaskID(uuid2)
-	description1, _ := task.NewTaskDescription("Task 1")
-	description2, _ := task.NewTaskDescription("Task 2")
-	tasks := make(map[task.TaskID]task.Task)
-	tasks[taskID1] = task.NewTask(taskID1, description1)
-	tasks[taskID2] = task.NewTask(taskID2, description2)
-	taskRepository := task.NewInMemoryTaskRepository(tasks)
+func main() {
+	config.Initialize()
+	database := db.SetUpDB()
+	defer database.Close()
+
+	taskRepository := task.NewPostgresTaskRepository(database)
 	taskService := task.NewTaskApplicationService(taskRepository)
 	taskController := task.NewTaskController(taskService)
 
-	return taskController
-}
-
-func main() {
-	taskController := setUpForMemory()
-
+	// Ginルーターの初期化
 	r := gin.Default()
+
+	// タスク関連のルートを設定
 	r.GET("/tasks", taskController.FindAll)
 	r.GET("/tasks/:id", taskController.FindById)
 	r.POST("/tasks", taskController.Register)
@@ -37,7 +31,8 @@ func main() {
 	r.PUT("/tasks/:id/incomplete", taskController.MarkTaskAsIncompleted)
 	r.DELETE("/tasks/:id", taskController.DeleteTask)
 
-	err := r.Run()
+	// サーバーをポート8080で起動
+	err := r.Run(":8080")
 	if err != nil {
 		log.Println(err)
 	}
