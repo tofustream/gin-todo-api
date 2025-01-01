@@ -6,7 +6,7 @@ type GeneralUser struct {
 	id        UserID
 	email     UserEmail
 	password  UserPassword
-	createAt  time.Time
+	createdAt time.Time
 	updatedAt time.Time
 	isDeleted bool
 }
@@ -17,22 +17,23 @@ func NewGeneralUser(id UserID, email UserEmail, password UserPassword) GeneralUs
 		id:        id,
 		email:     email,
 		password:  password,
-		createAt:  now,
+		createdAt: now,
 		updatedAt: now,
-		isDeleted: false}
+		isDeleted: false,
+	}
 }
 
 func NewGeneralUserWithAllFields(
 	id UserID,
 	email UserEmail,
 	password UserPassword,
-	createAt, updatedAt time.Time,
+	createdAt, updatedAt time.Time,
 	isDeleted bool) GeneralUser {
 	return GeneralUser{
 		id:        id,
 		email:     email,
 		password:  password,
-		createAt:  createAt,
+		createdAt: createdAt,
 		updatedAt: updatedAt,
 		isDeleted: isDeleted,
 	}
@@ -51,7 +52,7 @@ func (u *GeneralUser) Password() UserPassword {
 }
 
 func (u *GeneralUser) CreatedAt() time.Time {
-	return u.createAt
+	return u.createdAt
 }
 
 func (u *GeneralUser) UpdatedAt() time.Time {
@@ -62,12 +63,17 @@ func (u *GeneralUser) IsDeleted() bool {
 	return u.isDeleted
 }
 
-func (u *GeneralUser) MarkAsDeleted() GeneralUser {
-	return GeneralUser{
-		id:        u.id,
-		email:     u.email,
-		createAt:  u.createAt,
-		updatedAt: time.Now(),
-		isDeleted: true,
-	}
+func (u *GeneralUser) MarkAsDeleted() {
+	u.isDeleted = true
+	u.updatedAt = time.Now()
+}
+
+func (u *GeneralUser) UpdateEmail(email UserEmail) {
+	u.email = email
+	u.updatedAt = time.Now()
+}
+
+func (u *GeneralUser) UpdatePassword(password UserPassword) {
+	u.password = password
+	u.updatedAt = time.Now()
 }

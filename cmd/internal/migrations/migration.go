@@ -10,7 +10,10 @@ import (
 )
 
 // マイグレーションファイルのパス
-const migrationFile string = "./cmd/internal/migrations/20250101_create_tasks_table.sql"
+var migrationFiles = []string{
+	"./cmd/internal/migrations/20250101_create_tasks_table.sql",
+	"./cmd/internal/migrations/20250101_create_users_table.sql",
+}
 
 func main() {
 	// 環境変数の初期化
@@ -20,18 +23,20 @@ func main() {
 	database := db.SetUpDB()
 	defer database.Close()
 
-	// マイグレーションファイルの内容を読み込む
-	migrationSQL, err := os.ReadFile(migrationFile)
-	if err != nil {
-		log.Panicf("Error reading migration file: %v", err)
-	}
+	for _, migrationFile := range migrationFiles {
+		// マイグレーションファイルの内容を読み込む
+		migrationSQL, err := os.ReadFile(migrationFile)
+		if err != nil {
+			log.Panicf("Error reading migration file %s: %v", migrationFile, err)
+		}
 
-	// マイグレーションSQLを実行
-	_, err = database.Exec(string(migrationSQL))
-	if err != nil {
-		log.Panicf("Error executing migration: %v", err)
-	}
+		// マイグレーションSQLを実行
+		_, err = database.Exec(string(migrationSQL))
+		if err != nil {
+			log.Panicf("Error executing migration from file %s: %v", migrationFile, err)
+		}
 
-	// 成功メッセージ
-	fmt.Println("Migration executed successfully")
+		// 成功メッセージ
+		fmt.Printf("Migration from file %s executed successfully\n", migrationFile)
+	}
 }
