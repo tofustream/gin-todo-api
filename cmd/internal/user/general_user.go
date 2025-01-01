@@ -5,24 +5,33 @@ import "time"
 type GeneralUser struct {
 	id        UserID
 	email     UserEmail
+	password  UserPassword
 	createAt  time.Time
 	updatedAt time.Time
 	isDeleted bool
 }
 
-func NewGeneralUser(id UserID, email UserEmail) GeneralUser {
+func NewGeneralUser(id UserID, email UserEmail, password UserPassword) GeneralUser {
 	now := time.Now()
-	return GeneralUser{id: id, email: email, createAt: now, updatedAt: now, isDeleted: false}
+	return GeneralUser{
+		id:        id,
+		email:     email,
+		password:  password,
+		createAt:  now,
+		updatedAt: now,
+		isDeleted: false}
 }
 
 func NewGeneralUserWithAllFields(
 	id UserID,
 	email UserEmail,
+	password UserPassword,
 	createAt, updatedAt time.Time,
 	isDeleted bool) GeneralUser {
 	return GeneralUser{
 		id:        id,
 		email:     email,
+		password:  password,
 		createAt:  createAt,
 		updatedAt: updatedAt,
 		isDeleted: isDeleted,
@@ -35,6 +44,10 @@ func (u *GeneralUser) ID() UserID {
 
 func (u *GeneralUser) Email() UserEmail {
 	return u.email
+}
+
+func (u *GeneralUser) Password() UserPassword {
+	return u.password
 }
 
 func (u *GeneralUser) CreatedAt() time.Time {
