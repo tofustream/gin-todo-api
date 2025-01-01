@@ -9,5 +9,6 @@ func taskToDTO(task Task) TaskDTO {
 		task.CreatedAt().String(),
 		task.UpdatedAt().String(),
 		task.IsCompleted(),
+		task.IsDeleted(),
 	)
 }

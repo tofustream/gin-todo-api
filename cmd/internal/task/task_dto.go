@@ -6,14 +6,22 @@ type TaskDTO struct {
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
 	IsCompleted bool   `json:"is_completed"`
+	IsDeleted   bool   `json:"is_deleted"`
 }
 
-func NewTaskDTO(id string, description string, createdAt string, updatedAt string, isCompleted bool) TaskDTO {
+func NewTaskDTO(
+	id string,
+	description string,
+	createdAt string,
+	updatedAt string,
+	isCompleted bool,
+	isDeleted bool) TaskDTO {
 	return TaskDTO{
 		ID:          id,
 		Description: description,
 		CreatedAt:   createdAt,
 		UpdatedAt:   updatedAt,
 		IsCompleted: isCompleted,
+		IsDeleted:   isDeleted,
 	}
 }

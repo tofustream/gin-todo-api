@@ -8,6 +8,7 @@ type Task struct {
 	createdAt   time.Time
 	updatedAt   time.Time
 	isCompleted bool
+	isDeleted   bool
 }
 
 func NewTask(id TaskID, description TaskDescription) Task {
@@ -33,6 +34,10 @@ func (t *Task) UpdatedAt() time.Time {
 
 func (t *Task) IsCompleted() bool {
 	return t.isCompleted
+}
+
+func (t *Task) IsDeleted() bool {
+	return t.isDeleted
 }
 
 func (t *Task) MarkAsComplete() Task {
@@ -62,5 +67,16 @@ func (t *Task) UpdateDescription(description TaskDescription) Task {
 		createdAt:   t.createdAt,
 		updatedAt:   time.Now(),
 		isCompleted: t.isCompleted,
+	}
+}
+
+func (t *Task) MarkAsDeleted() Task {
+	return Task{
+		id:          t.id,
+		description: t.description,
+		createdAt:   t.createdAt,
+		updatedAt:   time.Now(),
+		isCompleted: t.isCompleted,
+		isDeleted:   true,
 	}
 }

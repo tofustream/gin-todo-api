@@ -27,8 +27,9 @@ func main() {
 	r.GET("/tasks/:id", taskController.FindById)
 	r.POST("/tasks", taskController.Register)
 	r.PUT("/tasks/:id", taskController.UpdateTaskDescription)
-	r.PUT("/tasks/:id/complete", taskController.MarkTaskAsComplete)
-	r.PUT("/tasks/:id/incomplete", taskController.MarkTaskAsIncompleteCommand)
+	r.PUT("/tasks/:id/complete", taskController.MarkTaskAsCompleted)
+	r.PUT("/tasks/:id/incomplete", taskController.MarkTaskAsIncompleted)
+	r.DELETE("/tasks/:id", taskController.DeleteTask)
 	err := r.Run()
 	if err != nil {
 		log.Println(err)
