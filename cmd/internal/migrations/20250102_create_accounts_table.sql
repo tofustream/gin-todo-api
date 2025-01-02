@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS general_users (
+CREATE TABLE IF NOT EXISTS accounts (
     id UUID PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,

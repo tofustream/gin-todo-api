@@ -1,9 +1,5 @@
 package task
 
-import (
-	"github.com/google/uuid"
-)
-
 type ITaskCommand interface {
 	Execute(repository ITaskRepository) (TaskDTO, error)
 }
@@ -14,12 +10,7 @@ type UpdateTaskDescriptionCommand struct {
 }
 
 func NewUpdateTaskDescriptionCommand(taskID string, description string) (*UpdateTaskDescriptionCommand, error) {
-	parsedTaskID, err := uuid.Parse(taskID)
-	if err != nil {
-		return nil, err
-	}
-
-	id, err := NewTaskID(parsedTaskID)
+	id, err := NewTaskIDFromString(taskID)
 	if err != nil {
 		return nil, err
 	}
@@ -50,12 +41,7 @@ type MarkTaskAsCompleteCommand struct {
 }
 
 func NewMarkTaskAsCompleteCommand(taskID string) (*MarkTaskAsCompleteCommand, error) {
-	parsedTaskID, err := uuid.Parse(taskID)
-	if err != nil {
-		return nil, err
-	}
-
-	id, err := NewTaskID(parsedTaskID)
+	id, err := NewTaskIDFromString(taskID)
 	if err != nil {
 		return nil, err
 	}
@@ -78,13 +64,7 @@ type MarkTaskAsIncompleted struct {
 }
 
 func NewMarkTaskAsIncompleteCommand(taskID string) (*MarkTaskAsIncompleted, error) {
-	parsedTaskID, err := uuid.Parse(taskID)
-	if err != nil {
-		return nil, err
-	}
-
-	// TaskID を新規作成
-	id, err := NewTaskID(parsedTaskID)
+	id, err := NewTaskIDFromString(taskID)
 	if err != nil {
 		return nil, err
 	}
@@ -107,12 +87,7 @@ type MarkAsDeletedCommand struct {
 }
 
 func NewMarkAsDeletedCommand(taskID string) (*MarkAsDeletedCommand, error) {
-	parsedTaskID, err := uuid.Parse(taskID)
-	if err != nil {
-		return nil, err
-	}
-
-	id, err := NewTaskID(parsedTaskID)
+	id, err := NewTaskIDFromString(taskID)
 	if err != nil {
 		return nil, err
 	}

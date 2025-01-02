@@ -6,62 +6,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/tofustream/gin-todo-api/cmd/internal/user"
+	"github.com/tofustream/gin-todo-api/cmd/internal/account"
+	"github.com/tofustream/gin-todo-api/pkg/timestamp"
 )
 
 type ITaskRepository interface {
-	FindAll() ([]TaskDTO, error)
+	FindAllByAccountID(accountID account.AccountID) ([]TaskFindAllByAccountIDResponseDTO, error)
 	FindById(id TaskID) (Task, error)
 	Add(task Task) error
 	Update(task Task) (TaskDTO, error)
-}
-
-type InMemoryTaskRepository struct {
-	tasks map[TaskID]Task
-}
-
-func NewInMemoryTaskRepository(tasks map[TaskID]Task) ITaskRepository {
-	return &InMemoryTaskRepository{
-		tasks: tasks,
-	}
-}
-
-func (r *InMemoryTaskRepository) FindAll() ([]TaskDTO, error) {
-	if len(r.tasks) == 0 {
-		return nil, errors.New("no tasks found")
-	}
-
-	tasks := make([]TaskDTO, 0, len(r.tasks))
-	for _, task := range r.tasks {
-		dto := taskToDTO(task)
-		tasks = append(tasks, dto)
-	}
-	return tasks, nil
-}
-
-func (r *InMemoryTaskRepository) FindById(id TaskID) (Task, error) {
-	task, ok := r.tasks[id]
-	if !ok {
-		return Task{}, errors.New("task not found")
-	}
-	return task, nil
-}
-
-func (r *InMemoryTaskRepository) Add(task Task) error {
-	if _, exists := r.tasks[task.ID()]; exists {
-		return errors.New("task already exists")
-	}
-	r.tasks[task.ID()] = task
-	return nil
-}
-
-func (r *InMemoryTaskRepository) Update(task Task) (TaskDTO, error) {
-	if _, exists := r.tasks[task.ID()]; !exists {
-		return TaskDTO{}, errors.New("task not found")
-	}
-	r.tasks[task.ID()] = task
-	return taskToDTO(r.tasks[task.ID()]), nil
 }
 
 type PostgresTaskRepository struct {
@@ -74,34 +27,27 @@ func NewPostgresTaskRepository(db *sql.DB) ITaskRepository {
 	}
 }
 
-func (r *PostgresTaskRepository) FindAll() ([]TaskDTO, error) {
-	rows, err := r.db.Query("SELECT * FROM tasks WHERE is_deleted = false")
+func (r PostgresTaskRepository) FindAllByAccountID(accountID account.AccountID) ([]TaskFindAllByAccountIDResponseDTO, error) {
+	rows, err := r.db.Query("SELECT description, created_at, updated_at, is_completed FROM tasks WHERE account_id = $1 AND is_deleted = false", accountID.Value())
 	if err != nil {
 		return nil, fmt.Errorf("failed to query tasks: %w", err)
 	}
 	defer rows.Close()
 
-	tasks := make([]TaskDTO, 0)
+	tasks := make([]TaskFindAllByAccountIDResponseDTO, 0)
 	for rows.Next() {
-		var id string
-		var description string
-		var createdAt string
-		var updatedAt string
-		var isCompleted bool
-		var isDeleted bool
-		err = rows.Scan(&id, &description, &createdAt, &updatedAt, &isCompleted, &isDeleted)
+		var dto TaskFindAllByAccountIDResponseDTO
+		err = rows.Scan(
+			&dto.Description,
+			&dto.CreatedAt,
+			&dto.UpdatedAt,
+			&dto.IsCompleted,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 
-		tasks = append(tasks, TaskDTO{
-			ID:          id,
-			Description: description,
-			CreatedAt:   createdAt,
-			UpdatedAt:   updatedAt,
-			IsCompleted: isCompleted,
-			IsDeleted:   isDeleted,
-		})
+		tasks = append(tasks, dto)
 	}
 	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("rows iteration error: %w", err)
@@ -117,7 +63,7 @@ func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 	var fetchedUpdatedAt string
 	var fetchedCompletedStatus bool
 	var fetchedDeletedStatus bool
-	var fetchedUserID string
+	var fetchedAccountID string
 
 	row := r.db.QueryRow("SELECT * FROM tasks WHERE id = $1 AND is_deleted = false", id.Value())
 	err := row.Scan(
@@ -127,7 +73,7 @@ func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 		&fetchedUpdatedAt,
 		&fetchedCompletedStatus,
 		&fetchedDeletedStatus,
-		&fetchedUserID,
+		&fetchedAccountID,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -136,11 +82,7 @@ func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 		return Task{}, fmt.Errorf("failed to scan row: %w", err)
 	}
 
-	parsedID, err := uuid.Parse(fetchedID)
-	if err != nil {
-		return Task{}, fmt.Errorf("failed to parse fetchedID: %w", err)
-	}
-	taskID, err := NewTaskID(parsedID)
+	taskID, err := NewTaskIDFromString(fetchedID)
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to create TaskID: %w", err)
 	}
@@ -156,7 +98,11 @@ func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to parse updatedAt: %w", err)
 	}
-	userID, err := user.NewUserIDFromString(fetchedUserID)
+	timeStamp, err := timestamp.NewTimestamp(createdAt, updatedAt)
+	if err != nil {
+		return Task{}, fmt.Errorf("failed to create Timestamp: %w", err)
+	}
+	accoutID, err := account.NewAccountIDFromString(fetchedAccountID)
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to create UserID: %w", err)
 	}
@@ -164,11 +110,10 @@ func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 	task = NewTaskWithAllFields(
 		taskID,
 		desc,
-		createdAt,
-		updatedAt,
+		timeStamp,
 		fetchedCompletedStatus,
 		fetchedDeletedStatus,
-		userID,
+		accoutID,
 	)
 	return task, nil
 }
@@ -176,13 +121,15 @@ func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 func (r *PostgresTaskRepository) Add(task Task) error {
 	id := task.ID()
 	desc := task.Description()
-	_, err := r.db.Exec("INSERT INTO tasks (id, description, created_at, updated_at, is_completed, is_deleted) VALUES ($1, $2, $3, $4, $5, $6)",
+	_, err := r.db.Exec("INSERT INTO tasks (id, description, created_at, updated_at, is_completed, is_deleted, account_id) VALUES ($1, $2, $3, $4, $5, $6, $7)",
 		id.Value(),
 		desc.Value(),
 		task.CreatedAt().Format(time.RFC3339),
 		task.UpdatedAt().Format(time.RFC3339),
 		task.IsCompleted(),
-		task.IsDeleted())
+		task.IsDeleted(),
+		task.AccountID().Value(),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to insert task: %w", err)
 	}

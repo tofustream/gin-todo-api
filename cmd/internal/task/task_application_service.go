@@ -1,14 +1,16 @@
 package task
 
 import (
+	"log"
+
 	"github.com/google/uuid"
-	"github.com/tofustream/gin-todo-api/cmd/internal/user"
+	"github.com/tofustream/gin-todo-api/cmd/internal/account"
 )
 
 type ITaskApplicationService interface {
-	FindAll() ([]TaskDTO, error)
+	FindAllByAccountID(accountID uuid.UUID) ([]TaskFindAllByAccountIDResponseDTO, error)
 	FindById(paramID string) (TaskDTO, error)
-	Register(description string, userID string) (TaskDTO, error)
+	CreateTask(description string, accountID string) error
 	Update(command ITaskCommand) (TaskDTO, error)
 }
 
@@ -20,21 +22,20 @@ func NewTaskApplicationService(repository ITaskRepository) ITaskApplicationServi
 	return &TaskApplicationService{repository: repository}
 }
 
-func (s *TaskApplicationService) FindAll() ([]TaskDTO, error) {
-	tasks, err := s.repository.FindAll()
+func (s *TaskApplicationService) FindAllByAccountID(accountID uuid.UUID) ([]TaskFindAllByAccountIDResponseDTO, error) {
+	accountIDValue, err := account.NewAccountIDFromUUID(accountID)
 	if err != nil {
 		return nil, err
 	}
-
-	return tasks, nil
+	dtos, err := s.repository.FindAllByAccountID(accountIDValue)
+	if err != nil {
+		return nil, err
+	}
+	return dtos, nil
 }
 
 func (s *TaskApplicationService) FindById(paramID string) (TaskDTO, error) {
-	parsedID, err := uuid.Parse(paramID)
-	if err != nil {
-		return TaskDTO{}, err
-	}
-	id, err := NewTaskID(parsedID)
+	id, err := NewTaskIDFromString(paramID)
 	if err != nil {
 		return TaskDTO{}, err
 	}
@@ -47,32 +48,28 @@ func (s *TaskApplicationService) FindById(paramID string) (TaskDTO, error) {
 	return taskToDTO(task), nil
 }
 
-func (s *TaskApplicationService) Register(description string, userID string) (TaskDTO, error) {
+func (s *TaskApplicationService) CreateTask(description string, accountID string) error {
 	newUUID, err := uuid.NewRandom()
 	if err != nil {
-		return TaskDTO{}, err
+		return err
 	}
-	taskID, err := NewTaskID(newUUID)
+	taskID, err := NewTaskIDFromUUID(newUUID)
 	if err != nil {
-		return TaskDTO{}, err
+		return err
 	}
 	taskDescription, err := NewTaskDescription(description)
 	if err != nil {
-		return TaskDTO{}, err
+		return err
 	}
 
-	userIDValue, err := user.NewUserIDFromString(userID)
+	accountIDValue, err := account.NewAccountIDFromString(accountID)
 	if err != nil {
-		return TaskDTO{}, err
+		return err
 	}
 
-	task := NewTask(taskID, taskDescription, userIDValue)
-	err = s.repository.Add(task)
-	if err != nil {
-		return TaskDTO{}, err
-	}
-
-	return taskToDTO(task), nil
+	task := NewTask(taskID, taskDescription, accountIDValue)
+	log.Printf("task: %v", task)
+	return s.repository.Add(task)
 }
 
 func (s *TaskApplicationService) Update(command ITaskCommand) (TaskDTO, error) {
