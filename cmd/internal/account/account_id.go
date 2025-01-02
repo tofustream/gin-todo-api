@@ -6,13 +6,15 @@ import (
 	"github.com/google/uuid"
 )
 
+var ErrEmptyAccountID = errors.New("account ID cannot be empty")
+
 type AccountID struct {
 	value uuid.UUID
 }
 
 func NewAccountIDFromUUID(value uuid.UUID) (AccountID, error) {
 	if value == uuid.Nil {
-		return AccountID{}, errors.New("invalid account ID")
+		return AccountID{}, ErrEmptyAccountID
 	}
 	return AccountID{value: value}, nil
 }
