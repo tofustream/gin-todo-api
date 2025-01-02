@@ -2,7 +2,6 @@ package user
 
 import (
 	"database/sql"
-	"log"
 )
 
 type IGeneralUserRepository interface {
@@ -42,8 +41,6 @@ func (r *PostgresGeneralUserRepository) FindAll() ([]GeneralUserDTO, error) {
 }
 
 func (r *PostgresGeneralUserRepository) Add(user GeneralUser) error {
-	log.Printf("Adding user with email: %s and hashed password: %s", user.Email().Value(), user.Password().String())
-
 	_, err := r.db.Exec("INSERT INTO general_users (id, email, password, created_at, updated_at, is_deleted) VALUES ($1, $2, $3, $4, $5, $6)",
 		user.ID().Value(),
 		user.Email().Value(),

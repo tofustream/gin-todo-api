@@ -9,7 +9,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func SetUpDB() *sql.DB {
+func SetupDB() *sql.DB {
 	// データベース接続情報を環境変数から取得
 	dbUser := os.Getenv("POSTGRES_USER")
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")

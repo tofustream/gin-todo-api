@@ -13,7 +13,7 @@ import (
 
 func main() {
 	config.Initialize()
-	database := db.SetUpDB()
+	database := db.SetupDB()
 	defer database.Close()
 
 	taskRepository := task.NewPostgresTaskRepository(database)

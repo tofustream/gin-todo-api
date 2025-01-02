@@ -17,6 +17,14 @@ func NewUserID(value uuid.UUID) (UserID, error) {
 	return UserID{value: value}, nil
 }
 
+func NewUserIDFromString(value string) (UserID, error) {
+	id, err := uuid.Parse(value)
+	if err != nil {
+		return UserID{}, err
+	}
+	return NewUserID(id)
+}
+
 func (u UserID) Value() uuid.UUID {
 	return u.value
 }

@@ -11,8 +11,8 @@ import (
 
 // マイグレーションファイルのパス
 var migrationFiles = []string{
-	"./cmd/internal/migrations/20250101_create_tasks_table.sql",
 	"./cmd/internal/migrations/20250101_create_general_users_table.sql",
+	"./cmd/internal/migrations/20250101_create_tasks_table.sql",
 }
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 	config.Initialize()
 
 	// データベース接続のセットアップ
-	database := db.SetUpDB()
+	database := db.SetupDB()
 	defer database.Close()
 
 	for _, migrationFile := range migrationFiles {

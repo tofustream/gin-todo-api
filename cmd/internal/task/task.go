@@ -1,6 +1,10 @@
 package task
 
-import "time"
+import (
+	"time"
+
+	"github.com/tofustream/gin-todo-api/cmd/internal/user"
+)
 
 type Task struct {
 	id          TaskID
@@ -9,6 +13,7 @@ type Task struct {
 	updatedAt   time.Time
 	isCompleted bool
 	isDeleted   bool
+	userID      user.UserID
 }
 
 func NewTask(id TaskID, description TaskDescription) Task {
@@ -53,6 +58,10 @@ func (t *Task) IsCompleted() bool {
 
 func (t *Task) IsDeleted() bool {
 	return t.isDeleted
+}
+
+func (t *Task) UserID() user.UserID {
+	return t.userID
 }
 
 func (t *Task) MarkAsComplete() Task {
