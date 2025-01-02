@@ -12,7 +12,6 @@ import (
 // マイグレーションファイルのパス
 var migrationFiles = []string{
 	"./cmd/internal/migrations/20250102_create_accounts_table.sql",
-	"./cmd/internal/migrations/20250101_create_general_users_table.sql",
 	"./cmd/internal/migrations/20250101_create_tasks_table.sql",
 }
 
