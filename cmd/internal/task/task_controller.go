@@ -4,11 +4,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/tofustream/gin-todo-api/cmd/internal/user"
 )
 
 type ITaskController interface {
 	FindAll(ctx *gin.Context)
+	FindAllByAccountID(ctx *gin.Context)
 	FindById(ctx *gin.Context)
 	Register(ctx *gin.Context)
 	UpdateTaskDescription(ctx *gin.Context)
@@ -33,6 +35,27 @@ func (c *TaskController) FindAll(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"tasks": tasks})
+}
+
+func (c *TaskController) FindAllByAccountID(ctx *gin.Context) {
+	maybeAccountID := ctx.MustGet("accountID")
+	accountIDStr, ok := maybeAccountID.(string)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid account ID"})
+		return
+	}
+	accountID, err := uuid.Parse(accountIDStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid account ID"})
+		return
+	}
+	dtos, err := c.service.FindAllByAccountID(accountID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"tasks": dtos})
 }
 
 func (c *TaskController) FindById(ctx *gin.Context) {

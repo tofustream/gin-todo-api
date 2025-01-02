@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"os"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq" // PostgreSQLドライバのインポート
 	"github.com/tofustream/gin-todo-api/cmd/internal/account"
@@ -10,7 +12,6 @@ import (
 	"github.com/tofustream/gin-todo-api/cmd/internal/config"
 	"github.com/tofustream/gin-todo-api/cmd/internal/db"
 	"github.com/tofustream/gin-todo-api/cmd/internal/task"
-	"github.com/tofustream/gin-todo-api/cmd/internal/user"
 )
 
 func main() {
@@ -22,9 +23,9 @@ func main() {
 	taskService := task.NewTaskApplicationService(taskRepository)
 	taskController := task.NewTaskController(taskService)
 
-	userRepository := user.NewPostgresGeneralUserRepository(database)
-	userService := user.NewGeneralUserApplicationService(userRepository)
-	userController := user.NewGeneralUserController(userService)
+	// userRepository := user.NewPostgresGeneralUserRepository(database)
+	// userService := user.NewGeneralUserApplicationService(userRepository)
+	// userController := user.NewGeneralUserController(userService)
 
 	accountRepository := account.NewPostgresAccountRepository(database)
 	accountApplicationService := account.NewAccountApplicationService(accountRepository)
@@ -35,22 +36,25 @@ func main() {
 
 	// Ginルーターの初期化
 	r := gin.Default()
+	r.Use(cors.Default())
 	taskRouter := r.Group(("/tasks"))
-	taskRouterWithAuth := taskRouter.Group(("/"), user.AuthMiddleware(userService))
-	userRouter := r.Group(("/users"))
+	taskRouterWithAuth := taskRouter.Group(("/"), auth.AuthMiddleware(os.Getenv("SECRET_KEY")))
+	// taskRouterWithAuth := taskRouter.Group(("/"), user.AuthMiddleware(userService))
+	// userRouter := r.Group(("/users"))
 
 	// タスク関連のルートを設定
-	taskRouter.GET("", taskController.FindAll)
+	// taskRouter.GET("", taskController.FindAll)
 	taskRouter.GET("/:id", taskController.FindById)
-	taskRouterWithAuth.POST("", taskController.Register)
+	taskRouterWithAuth.GET("", taskController.FindAllByAccountID)
+	// taskRouterWithAuth.POST("", taskController.Register)
 	taskRouter.PUT("/:id", taskController.UpdateTaskDescription)
 	taskRouter.PUT("/:id/complete", taskController.MarkTaskAsCompleted)
 	taskRouter.PUT("/:id/incomplete", taskController.MarkTaskAsIncompleted)
 	taskRouter.DELETE("/:id", taskController.DeleteTask)
 
-	userRouter.GET("", userController.FindAll)
-	userRouter.POST("/signup", userController.Signup)
-	userRouter.POST("/login", userController.Login)
+	// userRouter.GET("", userController.FindAll)
+	// userRouter.POST("/signup", userController.Signup)
+	// userRouter.POST("/login", userController.Login)
 
 	r.POST("/signup", accountController.Signup)
 	r.POST("/login", authController.Login)

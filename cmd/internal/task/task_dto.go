@@ -1,5 +1,7 @@
 package task
 
+import "time"
+
 type TaskDTO struct {
 	ID          string `json:"id"`
 	Description string `json:"description"`
@@ -24,4 +26,11 @@ func NewTaskDTO(
 		IsCompleted: isCompleted,
 		IsDeleted:   isDeleted,
 	}
+}
+
+type TaskFindAllByAccountIDResponseDTO struct {
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	IsCompleted bool      `json:"is_completed"`
 }

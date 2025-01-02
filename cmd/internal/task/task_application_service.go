@@ -2,11 +2,13 @@ package task
 
 import (
 	"github.com/google/uuid"
+	"github.com/tofustream/gin-todo-api/cmd/internal/account"
 	"github.com/tofustream/gin-todo-api/cmd/internal/user"
 )
 
 type ITaskApplicationService interface {
 	FindAll() ([]TaskDTO, error)
+	FindAllByAccountID(accountID uuid.UUID) ([]TaskFindAllByAccountIDResponseDTO, error)
 	FindById(paramID string) (TaskDTO, error)
 	Register(description string, userID string) (TaskDTO, error)
 	Update(command ITaskCommand) (TaskDTO, error)
@@ -27,6 +29,18 @@ func (s *TaskApplicationService) FindAll() ([]TaskDTO, error) {
 	}
 
 	return tasks, nil
+}
+
+func (s *TaskApplicationService) FindAllByAccountID(accountID uuid.UUID) ([]TaskFindAllByAccountIDResponseDTO, error) {
+	accountIDValue, err := account.NewAccountIDFromUUID(accountID)
+	if err != nil {
+		return nil, err
+	}
+	dtos, err := s.repository.FindAllByAccountID(accountIDValue)
+	if err != nil {
+		return nil, err
+	}
+	return dtos, nil
 }
 
 func (s *TaskApplicationService) FindById(paramID string) (TaskDTO, error) {

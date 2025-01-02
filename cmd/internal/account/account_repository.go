@@ -41,7 +41,7 @@ func (r PostgresAccountRepository) FindByID(id AccountID) (*Account, error) {
 func (r PostgresAccountRepository) FindByEmail(email AccountEmail) (*AccountFindByEmailResponseDTO, error) {
 	// 専用のDTOを使ってDBから取得したデータを返却
 	var dto AccountFindByEmailResponseDTO
-	err := r.db.QueryRow("SELECT id, email, password FROM accounts WHERE email = $1 AND is_deleted = FALSE", email.Value()).Scan(
+	err := r.db.QueryRow("SELECT id, email, password FROM accounts WHERE email = $1 AND is_deleted = false", email.Value()).Scan(
 		&dto.ID,
 		&dto.Email,
 		&dto.Password,
