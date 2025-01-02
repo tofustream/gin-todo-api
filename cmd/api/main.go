@@ -27,16 +27,18 @@ func main() {
 	// Ginルーターの初期化
 	r := gin.Default()
 	taskRouter := r.Group(("/tasks"))
+	taskRouterWithAuth := taskRouter.Group(("/"), user.AuthMiddleware(userService))
 	userRouter := r.Group(("/users"))
 
 	// タスク関連のルートを設定
 	taskRouter.GET("", taskController.FindAll)
 	taskRouter.GET("/:id", taskController.FindById)
-	taskRouter.POST("", taskController.Register)
+	taskRouterWithAuth.POST("", taskController.Register)
 	taskRouter.PUT("/:id", taskController.UpdateTaskDescription)
 	taskRouter.PUT("/:id/complete", taskController.MarkTaskAsCompleted)
 	taskRouter.PUT("/:id/incomplete", taskController.MarkTaskAsIncompleted)
 	taskRouter.DELETE("/:id", taskController.DeleteTask)
+
 	userRouter.GET("", userController.FindAll)
 	userRouter.POST("/signup", userController.Signup)
 	userRouter.POST("/login", userController.Login)

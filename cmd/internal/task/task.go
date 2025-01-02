@@ -16,16 +16,25 @@ type Task struct {
 	userID      user.UserID
 }
 
-func NewTask(id TaskID, description TaskDescription) Task {
+func NewTask(id TaskID, description TaskDescription, userID user.UserID) Task {
 	now := time.Now()
-	return Task{id: id, description: description, createdAt: now, updatedAt: now, isCompleted: false}
+	return Task{
+		id:          id,
+		description: description,
+		createdAt:   now,
+		updatedAt:   now,
+		isCompleted: false,
+		isDeleted:   false,
+		userID:      userID,
+	}
 }
 
 func NewTaskWithAllFields(
 	id TaskID,
 	description TaskDescription,
 	createdAt, updatedAt time.Time,
-	isCompleted, isDeleted bool) Task {
+	isCompleted, isDeleted bool,
+	userID user.UserID) Task {
 	return Task{
 		id:          id,
 		description: description,
@@ -33,6 +42,7 @@ func NewTaskWithAllFields(
 		updatedAt:   updatedAt,
 		isCompleted: isCompleted,
 		isDeleted:   isDeleted,
+		userID:      userID,
 	}
 }
 
@@ -71,6 +81,8 @@ func (t *Task) MarkAsComplete() Task {
 		createdAt:   t.createdAt,
 		updatedAt:   time.Now(),
 		isCompleted: true,
+		isDeleted:   t.isDeleted,
+		userID:      t.userID,
 	}
 }
 
@@ -81,6 +93,8 @@ func (t *Task) MarkAsIncomplete() Task {
 		createdAt:   t.createdAt,
 		updatedAt:   time.Now(),
 		isCompleted: false,
+		isDeleted:   t.isDeleted,
+		userID:      t.userID,
 	}
 }
 
@@ -91,6 +105,8 @@ func (t *Task) UpdateDescription(description TaskDescription) Task {
 		createdAt:   t.createdAt,
 		updatedAt:   time.Now(),
 		isCompleted: t.isCompleted,
+		isDeleted:   t.isDeleted,
+		userID:      t.userID,
 	}
 }
 
@@ -102,5 +118,6 @@ func (t *Task) MarkAsDeleted() Task {
 		updatedAt:   time.Now(),
 		isCompleted: t.isCompleted,
 		isDeleted:   true,
+		userID:      t.userID,
 	}
 }

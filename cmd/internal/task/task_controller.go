@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tofustream/gin-todo-api/cmd/internal/user"
 )
 
 type ITaskController interface {
@@ -47,6 +48,13 @@ func (c *TaskController) FindById(ctx *gin.Context) {
 }
 
 func (c *TaskController) Register(ctx *gin.Context) {
+	u, exists := ctx.Get("user")
+	if !exists {
+		ctx.AbortWithStatus((http.StatusUnauthorized))
+		return
+	}
+	userID := u.(*user.GeneralUserDTO).ID
+
 	var json struct {
 		Description string `json:"description"`
 	}
@@ -55,7 +63,7 @@ func (c *TaskController) Register(ctx *gin.Context) {
 		return
 	}
 
-	task, err := c.service.Register(json.Description)
+	task, err := c.service.Register(json.Description, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

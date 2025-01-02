@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/tofustream/gin-todo-api/cmd/internal/user"
 )
 
 type ITaskRepository interface {
@@ -116,6 +117,7 @@ func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 	var fetchedUpdatedAt string
 	var fetchedCompletedStatus bool
 	var fetchedDeletedStatus bool
+	var fetchedUserID string
 
 	row := r.db.QueryRow("SELECT * FROM tasks WHERE id = $1 AND is_deleted = false", id.Value())
 	err := row.Scan(
@@ -124,7 +126,9 @@ func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 		&fetchedCreatedAt,
 		&fetchedUpdatedAt,
 		&fetchedCompletedStatus,
-		&fetchedDeletedStatus)
+		&fetchedDeletedStatus,
+		&fetchedUserID,
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return Task{}, errors.New("task not found")
@@ -152,6 +156,10 @@ func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to parse updatedAt: %w", err)
 	}
+	userID, err := user.NewUserIDFromString(fetchedUserID)
+	if err != nil {
+		return Task{}, fmt.Errorf("failed to create UserID: %w", err)
+	}
 
 	task = NewTaskWithAllFields(
 		taskID,
@@ -159,7 +167,9 @@ func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 		createdAt,
 		updatedAt,
 		fetchedCompletedStatus,
-		fetchedDeletedStatus)
+		fetchedDeletedStatus,
+		userID,
+	)
 	return task, nil
 }
 

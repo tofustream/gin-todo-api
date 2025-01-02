@@ -2,12 +2,13 @@ package task
 
 import (
 	"github.com/google/uuid"
+	"github.com/tofustream/gin-todo-api/cmd/internal/user"
 )
 
 type ITaskApplicationService interface {
 	FindAll() ([]TaskDTO, error)
 	FindById(paramID string) (TaskDTO, error)
-	Register(description string) (TaskDTO, error)
+	Register(description string, userID string) (TaskDTO, error)
 	Update(command ITaskCommand) (TaskDTO, error)
 }
 
@@ -46,7 +47,7 @@ func (s *TaskApplicationService) FindById(paramID string) (TaskDTO, error) {
 	return taskToDTO(task), nil
 }
 
-func (s *TaskApplicationService) Register(description string) (TaskDTO, error) {
+func (s *TaskApplicationService) Register(description string, userID string) (TaskDTO, error) {
 	newUUID, err := uuid.NewRandom()
 	if err != nil {
 		return TaskDTO{}, err
@@ -60,7 +61,12 @@ func (s *TaskApplicationService) Register(description string) (TaskDTO, error) {
 		return TaskDTO{}, err
 	}
 
-	task := NewTask(taskID, taskDescription)
+	userIDValue, err := user.NewUserIDFromString(userID)
+	if err != nil {
+		return TaskDTO{}, err
+	}
+
+	task := NewTask(taskID, taskDescription, userIDValue)
 	err = s.repository.Add(task)
 	if err != nil {
 		return TaskDTO{}, err
