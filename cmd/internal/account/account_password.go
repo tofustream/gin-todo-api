@@ -29,7 +29,7 @@ func NewAccountPassword(plain string) (AccountPassword, error) {
 	return AccountPassword{plain: plain}, nil
 }
 
-func (p AccountPassword) Value() string {
+func (p AccountPassword) Plain() string {
 	return p.plain
 }
 
