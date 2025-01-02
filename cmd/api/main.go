@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq" // PostgreSQLドライバのインポート
 	"github.com/tofustream/gin-todo-api/cmd/internal/account"
+	"github.com/tofustream/gin-todo-api/cmd/internal/auth"
 	"github.com/tofustream/gin-todo-api/cmd/internal/config"
 	"github.com/tofustream/gin-todo-api/cmd/internal/db"
 	"github.com/tofustream/gin-todo-api/cmd/internal/task"
@@ -29,6 +30,9 @@ func main() {
 	accountApplicationService := account.NewAccountApplicationService(accountRepository)
 	accountController := account.NewAccountController(accountApplicationService)
 
+	authApplicationService := auth.NewAuthApplicationService(accountRepository)
+	authController := auth.NewAuthController(authApplicationService)
+
 	// Ginルーターの初期化
 	r := gin.Default()
 	taskRouter := r.Group(("/tasks"))
@@ -48,7 +52,8 @@ func main() {
 	userRouter.POST("/signup", userController.Signup)
 	userRouter.POST("/login", userController.Login)
 
-	r.POST("/accounts/signup", accountController.Signup)
+	r.POST("/signup", accountController.Signup)
+	r.POST("/login", authController.Login)
 
 	// サーバーをポート8080で起動
 	err := r.Run(":8080")

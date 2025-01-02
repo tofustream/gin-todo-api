@@ -1,13 +1,18 @@
 package account
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
+
+var ErrAccountNotFound = errors.New("account not found")
 
 type IAccountRepository interface {
 	// ユーザーIDでアカウントを取得
 	FindByID(id AccountID) (*Account, error)
 
 	// メールアドレスでアカウントを取得
-	FindByEmail(email AccountEmail) (*Account, error)
+	FindByEmail(email AccountEmail) (*AccountFindByEmailResponseDTO, error)
 
 	// 新しいユーザーを追加
 	Add(account Account) (*Account, error)
@@ -33,8 +38,21 @@ func (r PostgresAccountRepository) FindByID(id AccountID) (*Account, error) {
 	return nil, nil
 }
 
-func (r PostgresAccountRepository) FindByEmail(email AccountEmail) (*Account, error) {
-	return nil, nil
+func (r PostgresAccountRepository) FindByEmail(email AccountEmail) (*AccountFindByEmailResponseDTO, error) {
+	// 専用のDTOを使ってDBから取得したデータを返却
+	var dto AccountFindByEmailResponseDTO
+	err := r.db.QueryRow("SELECT id, email, password FROM accounts WHERE email = $1 AND is_deleted = FALSE", email.Value()).Scan(
+		&dto.ID,
+		&dto.Email,
+		&dto.Password,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrAccountNotFound
+		}
+		return nil, err
+	}
+	return &dto, nil
 }
 
 func (r PostgresAccountRepository) Add(account Account) (*Account, error) {
