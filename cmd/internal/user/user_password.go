@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const minPasswordLength uint = 8
+const minPasswordLength int = 8
 
 type UserPassword struct {
 	value []byte
@@ -18,7 +18,7 @@ func NewUserPassword(value string) (UserPassword, error) {
 		return UserPassword{}, errors.New("password cannot be empty")
 	}
 
-	if len(value) < 8 {
+	if len(value) < minPasswordLength {
 		return UserPassword{}, fmt.Errorf("password must be at least %d characters long", minPasswordLength)
 	}
 
@@ -32,4 +32,8 @@ func NewUserPassword(value string) (UserPassword, error) {
 
 func (p UserPassword) Value() []byte {
 	return p.value
+}
+
+func (p UserPassword) String() string {
+	return string(p.value)
 }

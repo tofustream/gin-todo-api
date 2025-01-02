@@ -27,7 +27,7 @@ func main() {
 	// Ginルーターの初期化
 	r := gin.Default()
 	taskRouter := r.Group(("/tasks"))
-	userRouter := r.Group(("/general-users"))
+	userRouter := r.Group(("/users"))
 
 	// タスク関連のルートを設定
 	taskRouter.GET("", taskController.FindAll)
@@ -38,7 +38,8 @@ func main() {
 	taskRouter.PUT("/:id/incomplete", taskController.MarkTaskAsIncompleted)
 	taskRouter.DELETE("/:id", taskController.DeleteTask)
 	userRouter.GET("", userController.FindAll)
-	userRouter.POST("", userController.Register)
+	userRouter.POST("/signup", userController.Signup)
+	userRouter.POST("/login", userController.Login)
 
 	// サーバーをポート8080で起動
 	err := r.Run(":8080")
