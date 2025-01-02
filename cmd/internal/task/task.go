@@ -3,121 +3,123 @@ package task
 import (
 	"time"
 
-	"github.com/tofustream/gin-todo-api/cmd/internal/user"
+	"github.com/tofustream/gin-todo-api/cmd/internal/account"
+	"github.com/tofustream/gin-todo-api/pkg/timestamp"
 )
 
 type Task struct {
 	id          TaskID
 	description TaskDescription
-	createdAt   time.Time
-	updatedAt   time.Time
+	// createdAt   time.Time
+	// updatedAt   time.Time
+	timeStamp   timestamp.Timestamp
 	isCompleted bool
 	isDeleted   bool
-	userID      user.UserID
+	accountID   account.AccountID
 }
 
-func NewTask(id TaskID, description TaskDescription, userID user.UserID) Task {
+func NewTask(id TaskID, description TaskDescription, accountID account.AccountID) Task {
 	now := time.Now()
+	timeStamp, _ := timestamp.NewTimestamp(now, now)
 	return Task{
 		id:          id,
 		description: description,
-		createdAt:   now,
-		updatedAt:   now,
+		timeStamp:   timeStamp,
 		isCompleted: false,
 		isDeleted:   false,
-		userID:      userID,
+		accountID:   accountID,
 	}
 }
 
 func NewTaskWithAllFields(
 	id TaskID,
 	description TaskDescription,
-	createdAt, updatedAt time.Time,
+	timeStamp timestamp.Timestamp,
 	isCompleted, isDeleted bool,
-	userID user.UserID) Task {
+	accountID account.AccountID,
+) Task {
 	return Task{
 		id:          id,
 		description: description,
-		createdAt:   createdAt,
-		updatedAt:   updatedAt,
+		timeStamp:   timeStamp,
 		isCompleted: isCompleted,
 		isDeleted:   isDeleted,
-		userID:      userID,
+		accountID:   accountID,
 	}
 }
 
-func (t *Task) ID() TaskID {
+func (t Task) ID() TaskID {
 	return t.id
 }
 
-func (t *Task) Description() TaskDescription {
+func (t Task) Description() TaskDescription {
 	return t.description
 }
 
-func (t *Task) CreatedAt() time.Time {
-	return t.createdAt
+func (t Task) CreatedAt() time.Time {
+	return t.timeStamp.CreatedAt()
 }
 
-func (t *Task) UpdatedAt() time.Time {
-	return t.updatedAt
+func (t Task) UpdatedAt() time.Time {
+	return t.timeStamp.UpdatedAt()
 }
 
-func (t *Task) IsCompleted() bool {
+func (t Task) IsCompleted() bool {
 	return t.isCompleted
 }
 
-func (t *Task) IsDeleted() bool {
+func (t Task) IsDeleted() bool {
 	return t.isDeleted
 }
 
-func (t *Task) UserID() user.UserID {
-	return t.userID
+func (t Task) AccountID() account.AccountID {
+	return t.accountID
 }
 
-func (t *Task) MarkAsComplete() Task {
+func (t Task) MarkAsComplete() Task {
+	newTimestamp := t.timeStamp.Update()
 	return Task{
 		id:          t.id,
 		description: t.description,
-		createdAt:   t.createdAt,
-		updatedAt:   time.Now(),
+		timeStamp:   newTimestamp,
 		isCompleted: true,
 		isDeleted:   t.isDeleted,
-		userID:      t.userID,
+		accountID:   t.accountID,
 	}
 }
 
-func (t *Task) MarkAsIncomplete() Task {
+func (t Task) MarkAsIncomplete() Task {
+	newTimestamp := t.timeStamp.Update()
 	return Task{
 		id:          t.id,
 		description: t.description,
-		createdAt:   t.createdAt,
-		updatedAt:   time.Now(),
+		timeStamp:   newTimestamp,
 		isCompleted: false,
 		isDeleted:   t.isDeleted,
-		userID:      t.userID,
+		accountID:   t.accountID,
 	}
 }
 
-func (t *Task) UpdateDescription(description TaskDescription) Task {
+func (t Task) UpdateDescription(description TaskDescription) Task {
+	newTimestamp := t.timeStamp.Update()
 	return Task{
 		id:          t.id,
 		description: description,
-		createdAt:   t.createdAt,
-		updatedAt:   time.Now(),
+		timeStamp:   newTimestamp,
 		isCompleted: t.isCompleted,
 		isDeleted:   t.isDeleted,
-		userID:      t.userID,
+		accountID:   t.accountID,
 	}
 }
 
-func (t *Task) MarkAsDeleted() Task {
+func (t Task) MarkAsDeleted() Task {
+	newTimestamp := t.timeStamp.Update()
 	return Task{
 		id:          t.id,
 		description: t.description,
-		createdAt:   t.createdAt,
-		updatedAt:   time.Now(),
+		timeStamp:   newTimestamp,
 		isCompleted: t.isCompleted,
 		isDeleted:   true,
-		userID:      t.userID,
+		accountID:   t.accountID,
 	}
 }

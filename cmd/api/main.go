@@ -23,10 +23,6 @@ func main() {
 	taskService := task.NewTaskApplicationService(taskRepository)
 	taskController := task.NewTaskController(taskService)
 
-	// userRepository := user.NewPostgresGeneralUserRepository(database)
-	// userService := user.NewGeneralUserApplicationService(userRepository)
-	// userController := user.NewGeneralUserController(userService)
-
 	accountRepository := account.NewPostgresAccountRepository(database)
 	accountApplicationService := account.NewAccountApplicationService(accountRepository)
 	accountController := account.NewAccountController(accountApplicationService)
@@ -39,22 +35,15 @@ func main() {
 	r.Use(cors.Default())
 	taskRouter := r.Group(("/tasks"))
 	taskRouterWithAuth := taskRouter.Group(("/"), auth.AuthMiddleware(os.Getenv("SECRET_KEY")))
-	// taskRouterWithAuth := taskRouter.Group(("/"), user.AuthMiddleware(userService))
-	// userRouter := r.Group(("/users"))
 
 	// タスク関連のルートを設定
-	// taskRouter.GET("", taskController.FindAll)
 	taskRouter.GET("/:id", taskController.FindById)
 	taskRouterWithAuth.GET("", taskController.FindAllByAccountID)
-	// taskRouterWithAuth.POST("", taskController.Register)
+	taskRouterWithAuth.POST("", taskController.CreateTask)
 	taskRouter.PUT("/:id", taskController.UpdateTaskDescription)
 	taskRouter.PUT("/:id/complete", taskController.MarkTaskAsCompleted)
 	taskRouter.PUT("/:id/incomplete", taskController.MarkTaskAsIncompleted)
 	taskRouter.DELETE("/:id", taskController.DeleteTask)
-
-	// userRouter.GET("", userController.FindAll)
-	// userRouter.POST("/signup", userController.Signup)
-	// userRouter.POST("/login", userController.Login)
 
 	r.POST("/signup", accountController.Signup)
 	r.POST("/login", authController.Login)

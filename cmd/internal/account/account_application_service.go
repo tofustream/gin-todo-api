@@ -9,7 +9,7 @@ import (
 
 type IAccountApplicationService interface {
 	// アカウントを登録
-	RegisterAccount(email string, plainPassword string) (*AccountRegistrationResponseDTO, error)
+	Signup(email string, plainPassword string) error
 }
 
 type AccountApplicationService struct {
@@ -54,20 +54,10 @@ func generateAccountEntity(email string, plainPassword string) (*Account, error)
 }
 
 // アカウントを登録
-func (s AccountApplicationService) RegisterAccount(email string, plainPassword string) (*AccountRegistrationResponseDTO, error) {
+func (s AccountApplicationService) Signup(email string, plainPassword string) error {
 	newAccount, err := generateAccountEntity(email, plainPassword)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	createdAccount, err := s.repository.Add(*newAccount)
-	if err != nil {
-		return nil, err
-	}
-
-	// アカウント登録時にクライアントに返却するDTOを生成
-	return &AccountRegistrationResponseDTO{
-		ID:        createdAccount.ID().Value(),
-		Email:     createdAccount.Email().Value(),
-		CreatedAt: createdAccount.CreatedAt(),
-	}, nil
+	return s.repository.Add(*newAccount)
 }

@@ -34,11 +34,11 @@ func (c *AccountController) Signup(ctx *gin.Context) {
 	}
 
 	// アカウント登録
-	dto, err := c.service.RegisterAccount(json.Email, json.Password)
+	err := c.service.Signup(json.Email, json.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"account": dto})
+	ctx.JSON(http.StatusCreated, gin.H{"message": "Account created"})
 }

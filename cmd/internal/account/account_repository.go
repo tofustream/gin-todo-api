@@ -15,7 +15,7 @@ type IAccountRepository interface {
 	FindByEmail(email AccountEmail) (*AccountFindByEmailResponseDTO, error)
 
 	// 新しいユーザーを追加
-	Add(account Account) (*Account, error)
+	Add(account Account) error
 
 	// 既存のユーザー情報を更新
 	Update(account Account) (*Account, error)
@@ -55,11 +55,11 @@ func (r PostgresAccountRepository) FindByEmail(email AccountEmail) (*AccountFind
 	return &dto, nil
 }
 
-func (r PostgresAccountRepository) Add(account Account) (*Account, error) {
+func (r PostgresAccountRepository) Add(account Account) error {
 	// パスワードをハッシュ化
 	hashedPassword, err := account.Password().HashedValue()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// ユーザー情報をDBに追加
@@ -71,11 +71,7 @@ func (r PostgresAccountRepository) Add(account Account) (*Account, error) {
 		account.UpdatedAt(),
 		account.IsDeleted(),
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	return &account, nil
+	return err
 }
 
 func (r PostgresAccountRepository) Update(account Account) (*Account, error) {
