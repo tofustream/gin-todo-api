@@ -11,7 +11,6 @@ import (
 )
 
 type ITaskRepository interface {
-	// FindAll() ([]TaskDTO, error)
 	FindAllByAccountID(accountID account.AccountID) ([]TaskFindAllByAccountIDResponseDTO, error)
 	FindById(id TaskID) (Task, error)
 	Add(task Task) error
@@ -55,41 +54,6 @@ func (r PostgresTaskRepository) FindAllByAccountID(accountID account.AccountID) 
 	}
 	return tasks, nil
 }
-
-// func (r *PostgresTaskRepository) FindAll() ([]TaskDTO, error) {
-// 	rows, err := r.db.Query("SELECT * FROM tasks WHERE is_deleted = false")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to query tasks: %w", err)
-// 	}
-// 	defer rows.Close()
-
-// 	tasks := make([]TaskDTO, 0)
-// 	for rows.Next() {
-// 		var id string
-// 		var description string
-// 		var createdAt string
-// 		var updatedAt string
-// 		var isCompleted bool
-// 		var isDeleted bool
-// 		err = rows.Scan(&id, &description, &createdAt, &updatedAt, &isCompleted, &isDeleted)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("failed to scan row: %w", err)
-// 		}
-
-// 		tasks = append(tasks, TaskDTO{
-// 			ID:          id,
-// 			Description: description,
-// 			CreatedAt:   createdAt,
-// 			UpdatedAt:   updatedAt,
-// 			IsCompleted: isCompleted,
-// 			IsDeleted:   isDeleted,
-// 		})
-// 	}
-// 	if err = rows.Err(); err != nil {
-// 		return nil, fmt.Errorf("rows iteration error: %w", err)
-// 	}
-// 	return tasks, nil
-// }
 
 func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 	var task Task
@@ -186,50 +150,3 @@ func (r *PostgresTaskRepository) Update(task Task) (TaskDTO, error) {
 	}
 	return taskToDTO(task), nil
 }
-
-// type InMemoryTaskRepository struct {
-// 	tasks map[TaskID]Task
-// }
-
-// func NewInMemoryTaskRepository(tasks map[TaskID]Task) ITaskRepository {
-// 	return &InMemoryTaskRepository{
-// 		tasks: tasks,
-// 	}
-// }
-
-// func (r *InMemoryTaskRepository) FindAll() ([]TaskDTO, error) {
-// 	if len(r.tasks) == 0 {
-// 		return nil, errors.New("no tasks found")
-// 	}
-
-// 	tasks := make([]TaskDTO, 0, len(r.tasks))
-// 	for _, task := range r.tasks {
-// 		dto := taskToDTO(task)
-// 		tasks = append(tasks, dto)
-// 	}
-// 	return tasks, nil
-// }
-
-// func (r *InMemoryTaskRepository) FindById(id TaskID) (Task, error) {
-// 	task, ok := r.tasks[id]
-// 	if !ok {
-// 		return Task{}, errors.New("task not found")
-// 	}
-// 	return task, nil
-// }
-
-// func (r *InMemoryTaskRepository) Add(task Task) error {
-// 	if _, exists := r.tasks[task.ID()]; exists {
-// 		return errors.New("task already exists")
-// 	}
-// 	r.tasks[task.ID()] = task
-// 	return nil
-// }
-
-// func (r *InMemoryTaskRepository) Update(task Task) (TaskDTO, error) {
-// 	if _, exists := r.tasks[task.ID()]; !exists {
-// 		return TaskDTO{}, errors.New("task not found")
-// 	}
-// 	r.tasks[task.ID()] = task
-// 	return taskToDTO(r.tasks[task.ID()]), nil
-// }

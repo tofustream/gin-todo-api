@@ -8,7 +8,6 @@ import (
 )
 
 type ITaskApplicationService interface {
-	// FindAll() ([]TaskDTO, error)
 	FindAllByAccountID(accountID uuid.UUID) ([]TaskFindAllByAccountIDResponseDTO, error)
 	FindById(paramID string) (TaskDTO, error)
 	CreateTask(description string, accountID string) error
@@ -22,15 +21,6 @@ type TaskApplicationService struct {
 func NewTaskApplicationService(repository ITaskRepository) ITaskApplicationService {
 	return &TaskApplicationService{repository: repository}
 }
-
-// func (s *TaskApplicationService) FindAll() ([]TaskDTO, error) {
-// 	tasks, err := s.repository.FindAll()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return tasks, nil
-// }
 
 func (s *TaskApplicationService) FindAllByAccountID(accountID uuid.UUID) ([]TaskFindAllByAccountIDResponseDTO, error) {
 	accountIDValue, err := account.NewAccountIDFromUUID(accountID)

@@ -10,8 +10,6 @@ import (
 type Task struct {
 	id          TaskID
 	description TaskDescription
-	// createdAt   time.Time
-	// updatedAt   time.Time
 	timeStamp   timestamp.Timestamp
 	isCompleted bool
 	isDeleted   bool

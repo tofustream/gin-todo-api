@@ -9,7 +9,6 @@ import (
 )
 
 type ITaskController interface {
-	// FindAll(ctx *gin.Context)
 	FindAllByAccountID(ctx *gin.Context)
 	FindById(ctx *gin.Context)
 	CreateTask(ctx *gin.Context)
@@ -26,16 +25,6 @@ type TaskController struct {
 func NewTaskController(service ITaskApplicationService) ITaskController {
 	return &TaskController{service: service}
 }
-
-// func (c *TaskController) FindAll(ctx *gin.Context) {
-// 	tasks, err := c.service.FindAll()
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, gin.H{"tasks": tasks})
-// }
 
 func (c *TaskController) FindAllByAccountID(ctx *gin.Context) {
 	maybeAccountID := ctx.MustGet("accountID")
