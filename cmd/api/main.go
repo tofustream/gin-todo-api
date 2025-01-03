@@ -33,20 +33,19 @@ func main() {
 	// Ginルーターの初期化
 	r := gin.Default()
 	r.Use(cors.Default())
-	taskRouter := r.Group(("/tasks"))
-	taskRouterWithAuth := taskRouter.Group(("/"), auth.AuthMiddleware(os.Getenv("SECRET_KEY")))
-
-	// タスク関連のルートを設定
-	taskRouterWithAuth.GET("/:id", taskController.FindTask)
-	taskRouterWithAuth.GET("", taskController.FindAllByAccountID)
-	taskRouterWithAuth.POST("", taskController.CreateTask)
-	taskRouter.PUT("/:id", taskController.UpdateTaskDescription)
-	taskRouter.PUT("/:id/complete", taskController.MarkTaskAsCompleted)
-	taskRouter.PUT("/:id/incomplete", taskController.MarkTaskAsIncompleted)
-	taskRouter.DELETE("/:id", taskController.DeleteTask)
 
 	r.POST("/signup", accountController.Signup)
 	r.POST("/login", authController.Login)
+
+	taskRouter := r.Group(("/tasks"))
+	taskRouterWithAuth := taskRouter.Group(("/"), auth.AuthMiddleware(os.Getenv("SECRET_KEY")))
+	taskRouterWithAuth.GET("/:id", taskController.FindTask)
+	taskRouterWithAuth.GET("", taskController.FindAllByAccountID)
+	taskRouterWithAuth.POST("", taskController.CreateTask)
+	taskRouterWithAuth.PUT("/:id", taskController.UpdateTaskDescription)
+	taskRouterWithAuth.PUT("/:id/complete", taskController.MarkTaskAsCompleted)
+	taskRouterWithAuth.PUT("/:id/incomplete", taskController.MarkTaskAsIncompleted)
+	taskRouterWithAuth.DELETE("/:id", taskController.DeleteTask)
 
 	// サーバーをポート8080で起動
 	err := r.Run(":8080")

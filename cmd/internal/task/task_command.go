@@ -1,5 +1,7 @@
 package task
 
+import "github.com/tofustream/gin-todo-api/cmd/internal/account"
+
 type ITaskCommand interface {
 	Execute(repository ITaskRepository) (TaskDTO, error)
 }
@@ -7,104 +9,131 @@ type ITaskCommand interface {
 type UpdateTaskDescriptionCommand struct {
 	taskID      TaskID
 	description TaskDescription
+	accountID   account.AccountID
 }
 
-func NewUpdateTaskDescriptionCommand(taskID string, description string) (*UpdateTaskDescriptionCommand, error) {
-	id, err := NewTaskIDFromString(taskID)
+func NewUpdateTaskDescriptionCommand(taskID string, description string, accountID string) (*UpdateTaskDescriptionCommand, error) {
+	taskIDValue, err := NewTaskIDFromString(taskID)
 	if err != nil {
 		return nil, err
 	}
 
-	desc, err := NewTaskDescription(description)
+	descriptionValue, err := NewTaskDescription(description)
+	if err != nil {
+		return nil, err
+	}
+
+	accountIDValue, err := account.NewAccountIDFromString(accountID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &UpdateTaskDescriptionCommand{
-		taskID:      id,
-		description: desc,
+		taskID:      taskIDValue,
+		description: descriptionValue,
+		accountID:   accountIDValue,
 	}, nil
 }
 
-func (c *UpdateTaskDescriptionCommand) Execute(repository ITaskRepository) (TaskDTO, error) {
-	// task, err := repository.FindById(c.taskID)
-	// if err != nil {
-	// 	return TaskDTO{}, err
-	// }
-
-	// newTask := task.UpdateDescription(c.description)
-	// return repository.Update(newTask)
-	return TaskDTO{}, nil
+func (c UpdateTaskDescriptionCommand) Execute(repository ITaskRepository) (TaskDTO, error) {
+	task, err := repository.FindTask(c.taskID, c.accountID)
+	if err != nil {
+		return TaskDTO{}, err
+	}
+	newTask := task.UpdateDescription(c.description)
+	return repository.Update(newTask)
 }
 
 type MarkTaskAsCompleteCommand struct {
-	taskID TaskID
+	taskID    TaskID
+	accountID account.AccountID
 }
 
-func NewMarkTaskAsCompleteCommand(taskID string) (*MarkTaskAsCompleteCommand, error) {
-	id, err := NewTaskIDFromString(taskID)
+func NewMarkTaskAsCompleteCommand(taskID string, accountID string) (*MarkTaskAsCompleteCommand, error) {
+	taskIDValue, err := NewTaskIDFromString(taskID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &MarkTaskAsCompleteCommand{taskID: id}, nil
+	accountIDValue, err := account.NewAccountIDFromString(accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &MarkTaskAsCompleteCommand{
+		taskID:    taskIDValue,
+		accountID: accountIDValue,
+	}, nil
 }
 
 func (c *MarkTaskAsCompleteCommand) Execute(repository ITaskRepository) (TaskDTO, error) {
-	// task, err := repository.FindById(c.taskID)
-	// if err != nil {
-	// 	return TaskDTO{}, err
-	// }
+	task, err := repository.FindTask(c.taskID, c.accountID)
+	if err != nil {
+		return TaskDTO{}, err
+	}
 
-	// newTask := task.MarkAsComplete()
-	// return repository.Update(newTask)
-	return TaskDTO{}, nil
+	newTask := task.MarkAsComplete()
+	return repository.Update(newTask)
 }
 
 type MarkTaskAsIncompleted struct {
-	taskID TaskID
+	taskID    TaskID
+	accountID account.AccountID
 }
 
-func NewMarkTaskAsIncompleteCommand(taskID string) (*MarkTaskAsIncompleted, error) {
-	id, err := NewTaskIDFromString(taskID)
+func NewMarkTaskAsIncompleteCommand(taskID string, accountID string) (*MarkTaskAsIncompleted, error) {
+	taskIDValue, err := NewTaskIDFromString(taskID)
+	if err != nil {
+		return nil, err
+	}
+	accountIDValue, err := account.NewAccountIDFromString(accountID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &MarkTaskAsIncompleted{taskID: id}, nil
+	return &MarkTaskAsIncompleted{
+		taskID:    taskIDValue,
+		accountID: accountIDValue,
+	}, nil
 }
 
 func (c *MarkTaskAsIncompleted) Execute(repository ITaskRepository) (TaskDTO, error) {
-	// task, err := repository.FindById(c.taskID)
-	// if err != nil {
-	// 	return TaskDTO{}, err
-	// }
+	task, err := repository.FindTask(c.taskID, c.accountID)
+	if err != nil {
+		return TaskDTO{}, err
+	}
 
-	// newTask := task.MarkAsIncomplete()
-	// return repository.Update(newTask)
-	return TaskDTO{}, nil
+	newTask := task.MarkAsIncomplete()
+	return repository.Update(newTask)
 }
 
 type MarkAsDeletedCommand struct {
-	taskID TaskID
+	taskID    TaskID
+	accountID account.AccountID
 }
 
-func NewMarkAsDeletedCommand(taskID string) (*MarkAsDeletedCommand, error) {
-	id, err := NewTaskIDFromString(taskID)
+func NewMarkAsDeletedCommand(taskID string, accountID string) (*MarkAsDeletedCommand, error) {
+	taskIDValue, err := NewTaskIDFromString(taskID)
+	if err != nil {
+		return nil, err
+	}
+	accountIDValue, err := account.NewAccountIDFromString(accountID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &MarkAsDeletedCommand{taskID: id}, nil
+	return &MarkAsDeletedCommand{
+		taskID:    taskIDValue,
+		accountID: accountIDValue,
+	}, nil
 }
 
 func (c *MarkAsDeletedCommand) Execute(repository ITaskRepository) (TaskDTO, error) {
-	// task, err := repository.FindById(c.taskID)
-	// if err != nil {
-	// 	return TaskDTO{}, err
-	// }
+	task, err := repository.FindTask(c.taskID, c.accountID)
+	if err != nil {
+		return TaskDTO{}, err
+	}
 
-	// newTask := task.MarkAsDeleted()
-	// return repository.Update(newTask)
-	return TaskDTO{}, nil
+	newTask := task.MarkAsDeleted()
+	return repository.Update(newTask)
 }
