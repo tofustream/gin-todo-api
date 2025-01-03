@@ -173,14 +173,13 @@ func (r *PostgresTaskRepository) Add(task Task) error {
 }
 
 func (r *PostgresTaskRepository) Update(task Task) (TaskDTO, error) {
-	id := task.ID()
-	desc := task.Description()
-	_, err := r.db.Exec("UPDATE tasks SET description = $1, updated_at = $2, is_completed = $3, is_deleted = $4 WHERE id = $5",
-		desc.Value(),
+	_, err := r.db.Exec(
+		"UPDATE tasks SET description = $1, updated_at = $2, is_completed = $3, is_deleted = $4 WHERE id = $5",
+		task.Description().Value(),
 		task.UpdatedAt().Format(time.RFC3339),
 		task.IsCompleted(),
 		task.IsDeleted(),
-		id.Value())
+		task.ID().Value())
 	if err != nil {
 		return TaskDTO{}, fmt.Errorf("failed to update task: %w", err)
 	}

@@ -3,25 +3,25 @@ package account
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"log"
+	"time"
 )
 
 var ErrAccountNotFound = errors.New("account not found")
 
 type IAccountRepository interface {
 	// ユーザーIDでアカウントを取得
-	FindByID(id AccountID) (*Account, error)
+	FindAccount(id AccountID) (*AccountDTO, error)
 
 	// メールアドレスでアカウントを取得
-	FindByEmail(email AccountEmail) (*FindByEmailResponseDTO, error)
+	FindAccountByEmail(email AccountEmail) (*FindByEmailResponseDTO, error)
 
 	// 新しいユーザーを追加
-	Add(account Account) error
+	AddAccount(account Account) error
 
 	// 既存のユーザー情報を更新
-	Update(account Account) (*Account, error)
-
-	// ユーザーを削除
-	Delete(id AccountID) (*Account, error)
+	UpdateAccount(updatedAccount UpdatedAccount) (*AccountDTO, error)
 }
 
 type PostgresAccountRepository struct {
@@ -34,11 +34,34 @@ func NewPostgresAccountRepository(db *sql.DB) IAccountRepository {
 	}
 }
 
-func (r PostgresAccountRepository) FindByID(id AccountID) (*Account, error) {
-	return nil, nil
+func (r PostgresAccountRepository) FindAccount(id AccountID) (*AccountDTO, error) {
+	// ユーザーIDを使ってDBから取得したデータを返却
+	var dto AccountDTO
+	query := `
+		SELECT id, email, password, created_at, updated_at, is_deleted
+		FROM accounts
+		WHERE id = $1
+		AND is_deleted = false
+	`
+	err := r.db.QueryRow(query, id.Value()).Scan(
+		&dto.ID,
+		&dto.Email,
+		&dto.Password,
+		&dto.CreatedAt,
+		&dto.UpdatedAt,
+		&dto.IsDeleted,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrAccountNotFound
+		}
+		return nil, err
+	}
+
+	return &dto, nil
 }
 
-func (r PostgresAccountRepository) FindByEmail(email AccountEmail) (*FindByEmailResponseDTO, error) {
+func (r PostgresAccountRepository) FindAccountByEmail(email AccountEmail) (*FindByEmailResponseDTO, error) {
 	// 専用のDTOを使ってDBから取得したデータを返却
 	var dto FindByEmailResponseDTO
 	query := `
@@ -52,6 +75,7 @@ func (r PostgresAccountRepository) FindByEmail(email AccountEmail) (*FindByEmail
 		&dto.Email,
 		&dto.Password,
 	)
+	log.Printf("account_id: %s", dto.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrAccountNotFound
@@ -61,7 +85,7 @@ func (r PostgresAccountRepository) FindByEmail(email AccountEmail) (*FindByEmail
 	return &dto, nil
 }
 
-func (r PostgresAccountRepository) Add(account Account) error {
+func (r PostgresAccountRepository) AddAccount(account Account) error {
 	// パスワードをハッシュ化
 	hashedPassword, err := account.Password().HashedValue()
 	if err != nil {
@@ -85,10 +109,28 @@ func (r PostgresAccountRepository) Add(account Account) error {
 	return err
 }
 
-func (r PostgresAccountRepository) Update(account Account) (*Account, error) {
-	return nil, nil
-}
+func (r PostgresAccountRepository) UpdateAccount(updatedAccount UpdatedAccount) (*AccountDTO, error) {
+	query := `
+		UPDATE accounts
+		SET email = $1, password = $2, updated_at = $3, is_deleted = $4
+		WHERE id = $5
+	`
+	_, err := r.db.Exec(
+		query,
+		updatedAccount.Email().Value(),
+		updatedAccount.HashedPassword().Value(),
+		updatedAccount.UpdatedAt().Format(time.RFC3339),
+		updatedAccount.IsDeleted(),
+		updatedAccount.ID().String(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update task: %w", err)
+	}
 
-func (r PostgresAccountRepository) Delete(id AccountID) (*Account, error) {
-	return nil, nil
+	dto, err := r.FindAccount(updatedAccount.ID())
+	if err != nil {
+		return nil, err
+	}
+
+	return dto, nil
 }

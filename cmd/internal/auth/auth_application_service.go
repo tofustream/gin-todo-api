@@ -29,7 +29,7 @@ func (s *AuthApplicationService) Login(email string, password string) (*string, 
 	if err != nil {
 		return nil, err
 	}
-	dto, err := s.repository.FindByEmail(emailValue)
+	dto, err := s.repository.FindAccountByEmail(emailValue)
 	if err != nil {
 		return nil, err
 	}

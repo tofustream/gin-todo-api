@@ -9,6 +9,8 @@ import (
 type IAccountController interface {
 	// アカウントを登録
 	Signup(ctx *gin.Context)
+
+	UpdateAccountEmail(ctx *gin.Context)
 }
 
 type AccountController struct {
@@ -22,7 +24,7 @@ func NewAccountController(service IAccountApplicationService) IAccountController
 }
 
 // アカウントを登録
-func (c *AccountController) Signup(ctx *gin.Context) {
+func (c AccountController) Signup(ctx *gin.Context) {
 	// リクエストボディをパース
 	var json struct {
 		Email    string `json:"email"`
@@ -41,4 +43,36 @@ func (c *AccountController) Signup(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{"message": "Account created"})
+}
+
+func (c AccountController) UpdateAccountEmail(ctx *gin.Context) {
+	maybeAccountID, exists := ctx.Get("accountID")
+	if !exists {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	accountIDStr := maybeAccountID.(string)
+
+	// リクエストボディをパース
+	var json struct {
+		Email string `json:"email"`
+	}
+	if err := ctx.ShouldBindJSON(&json); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	command, err := NewUpdateAccountEmailCommand(accountIDStr, json.Email)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	dto, err := c.service.UpdateAccount(command)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"account": dto})
 }

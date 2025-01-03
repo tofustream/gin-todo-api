@@ -10,6 +10,9 @@ import (
 type IAccountApplicationService interface {
 	// アカウントを登録
 	Signup(email string, plainPassword string) error
+
+	// アカウント情報を更新
+	UpdateAccount(command IAccountCommand) (*AccountDTO, error)
 }
 
 type AccountApplicationService struct {
@@ -59,5 +62,9 @@ func (s AccountApplicationService) Signup(email string, plainPassword string) er
 	if err != nil {
 		return err
 	}
-	return s.repository.Add(*newAccount)
+	return s.repository.AddAccount(*newAccount)
+}
+
+func (s AccountApplicationService) UpdateAccount(command IAccountCommand) (*AccountDTO, error) {
+	return command.Execute(s.repository)
 }

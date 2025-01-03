@@ -37,6 +37,9 @@ func main() {
 	r.POST("/signup", accountController.Signup)
 	r.POST("/login", authController.Login)
 
+	accountRouterWithAuth := r.Group(("/"), auth.AuthMiddleware(os.Getenv("SECRET_KEY")))
+	accountRouterWithAuth.PUT("/accounts/:id/email", accountController.UpdateAccountEmail)
+
 	taskRouter := r.Group(("/tasks"))
 	taskRouterWithAuth := taskRouter.Group(("/"), auth.AuthMiddleware(os.Getenv("SECRET_KEY")))
 	taskRouterWithAuth.GET("/:id", taskController.FindTask)
