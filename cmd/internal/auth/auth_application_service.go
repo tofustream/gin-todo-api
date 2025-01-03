@@ -2,10 +2,12 @@ package auth
 
 import (
 	"errors"
+	"log"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/tofustream/gin-todo-api/cmd/internal/account"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -50,6 +52,22 @@ func (s *AuthApplicationService) Login(email string, password string) (*string, 
 	if err != nil {
 		return nil, err
 	}
+
+	// 環境変数を設定
+	os.Setenv("SECRET_KEY", "your_secret_key")
+
+	sampleUUID, _ := uuid.NewRandom()
+	a, _ := account.NewAccountIDFromUUID(sampleUUID)
+	e, _ := account.NewAccountEmail("user@example.com")
+
+	t, err := createToken(a, e)
+	if err != nil {
+		log.Println("Error generating token:", err)
+		return nil, err
+	}
+
+	log.Println("Generated Token:", *t)
+
 	return token, nil
 }
 

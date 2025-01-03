@@ -2,15 +2,13 @@ package account
 
 import (
 	"time"
-
-	"github.com/tofustream/gin-todo-api/pkg/timestamp"
 )
 
 type UpdatedAccount struct {
 	accountID      AccountID
 	email          AccountEmail
 	hashedPasswrod HashedAccountPassword
-	timeStamp      timestamp.Timestamp
+	updatedAt      time.Time
 	isDeleted      bool
 }
 
@@ -18,14 +16,14 @@ func NewUpdatedAccount(
 	accountID AccountID,
 	email AccountEmail,
 	hashedPassword HashedAccountPassword,
-	timeStamp timestamp.Timestamp,
+	updatedAt time.Time,
 	isDeleted bool,
 ) UpdatedAccount {
 	return UpdatedAccount{
 		accountID:      accountID,
 		email:          email,
 		hashedPasswrod: hashedPassword,
-		timeStamp:      timeStamp,
+		updatedAt:      updatedAt,
 		isDeleted:      isDeleted,
 	}
 }
@@ -42,12 +40,8 @@ func (a UpdatedAccount) HashedPassword() HashedAccountPassword {
 	return a.hashedPasswrod
 }
 
-func (a UpdatedAccount) Timestamp() timestamp.Timestamp {
-	return a.timeStamp
-}
-
 func (a UpdatedAccount) UpdatedAt() time.Time {
-	return a.timeStamp.UpdatedAt()
+	return a.updatedAt
 }
 
 func (a UpdatedAccount) IsDeleted() bool {

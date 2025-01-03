@@ -37,22 +37,28 @@ func main() {
 	r.POST("/signup", accountController.Signup)
 	r.POST("/login", authController.Login)
 
-	accountRouterWithAuth := r.Group(("/"), auth.AuthMiddleware(os.Getenv("SECRET_KEY")))
-	accountRouterWithAuth.PUT("/accounts/:id/email", accountController.UpdateAccountEmail)
+	// ミドルウェアで使用するシークレットキーを環境変数から取得
+	secretKey := os.Getenv("SECRET_KEY")
+
+	accountRouter := r.Group(("/accounts"))
+	accountRouterWithAuth := accountRouter.Group(("/"), auth.AuthMiddleware(secretKey))
+	accountRouterWithAuth.PUT("/email", accountController.UpdateAccountEmail)
+	accountRouterWithAuth.PUT("/password", accountController.UpdateAccountPassword)
+	accountRouterWithAuth.DELETE("", accountController.DeleteAccount)
 
 	taskRouter := r.Group(("/tasks"))
-	taskRouterWithAuth := taskRouter.Group(("/"), auth.AuthMiddleware(os.Getenv("SECRET_KEY")))
+	taskRouterWithAuth := taskRouter.Group(("/"), auth.AuthMiddleware(secretKey))
 	taskRouterWithAuth.GET("/:id", taskController.FindTask)
 	taskRouterWithAuth.GET("", taskController.FindAllByAccountID)
 	taskRouterWithAuth.POST("", taskController.CreateTask)
 	taskRouterWithAuth.PUT("/:id", taskController.UpdateTaskDescription)
-	taskRouterWithAuth.PUT("/:id/complete", taskController.MarkTaskAsCompleted)
-	taskRouterWithAuth.PUT("/:id/incomplete", taskController.MarkTaskAsIncompleted)
+	taskRouterWithAuth.PUT("/:id/complete", taskController.MarkTaskAsCompleted)     // PATCH に変更予定
+	taskRouterWithAuth.PUT("/:id/incomplete", taskController.MarkTaskAsIncompleted) // PATCH に変更予定
 	taskRouterWithAuth.DELETE("/:id", taskController.DeleteTask)
 
 	// サーバーをポート8080で起動
 	err := r.Run(":8080")
 	if err != nil {
-		log.Println(err)
+		log.Panicf("Failed to start server: %v", err)
 	}
 }
