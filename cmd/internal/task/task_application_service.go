@@ -8,8 +8,8 @@ import (
 )
 
 type ITaskApplicationService interface {
-	FindAllByAccountID(accountID uuid.UUID) ([]TaskFindAllByAccountIDResponseDTO, error)
-	FindById(paramID string) (TaskDTO, error)
+	FindAllByAccountID(accountID string) ([]FindAllByAccountIDResponseDTO, error)
+	FindTask(taskID string, accountID string) (TaskDTO, error)
 	CreateTask(description string, accountID string) error
 	Update(command ITaskCommand) (TaskDTO, error)
 }
@@ -22,8 +22,8 @@ func NewTaskApplicationService(repository ITaskRepository) ITaskApplicationServi
 	return &TaskApplicationService{repository: repository}
 }
 
-func (s *TaskApplicationService) FindAllByAccountID(accountID uuid.UUID) ([]TaskFindAllByAccountIDResponseDTO, error) {
-	accountIDValue, err := account.NewAccountIDFromUUID(accountID)
+func (s TaskApplicationService) FindAllByAccountID(accountID string) ([]FindAllByAccountIDResponseDTO, error) {
+	accountIDValue, err := account.NewAccountIDFromString(accountID)
 	if err != nil {
 		return nil, err
 	}
@@ -34,13 +34,17 @@ func (s *TaskApplicationService) FindAllByAccountID(accountID uuid.UUID) ([]Task
 	return dtos, nil
 }
 
-func (s *TaskApplicationService) FindById(paramID string) (TaskDTO, error) {
-	id, err := NewTaskIDFromString(paramID)
+func (s TaskApplicationService) FindTask(taskID string, accountID string) (TaskDTO, error) {
+	taskIDValue, err := NewTaskIDFromString(taskID)
+	if err != nil {
+		return TaskDTO{}, err
+	}
+	accountIDValue, err := account.NewAccountIDFromString(accountID)
 	if err != nil {
 		return TaskDTO{}, err
 	}
 
-	task, err := s.repository.FindById(id)
+	task, err := s.repository.FindTask(taskIDValue, accountIDValue)
 	if err != nil {
 		return TaskDTO{}, err
 	}
@@ -48,7 +52,7 @@ func (s *TaskApplicationService) FindById(paramID string) (TaskDTO, error) {
 	return taskToDTO(task), nil
 }
 
-func (s *TaskApplicationService) CreateTask(description string, accountID string) error {
+func (s TaskApplicationService) CreateTask(description string, accountID string) error {
 	newUUID, err := uuid.NewRandom()
 	if err != nil {
 		return err
@@ -72,6 +76,6 @@ func (s *TaskApplicationService) CreateTask(description string, accountID string
 	return s.repository.Add(task)
 }
 
-func (s *TaskApplicationService) Update(command ITaskCommand) (TaskDTO, error) {
+func (s TaskApplicationService) Update(command ITaskCommand) (TaskDTO, error) {
 	return command.Execute(s.repository)
 }

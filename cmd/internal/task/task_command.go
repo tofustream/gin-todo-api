@@ -27,13 +27,14 @@ func NewUpdateTaskDescriptionCommand(taskID string, description string) (*Update
 }
 
 func (c *UpdateTaskDescriptionCommand) Execute(repository ITaskRepository) (TaskDTO, error) {
-	task, err := repository.FindById(c.taskID)
-	if err != nil {
-		return TaskDTO{}, err
-	}
+	// task, err := repository.FindById(c.taskID)
+	// if err != nil {
+	// 	return TaskDTO{}, err
+	// }
 
-	newTask := task.UpdateDescription(c.description)
-	return repository.Update(newTask)
+	// newTask := task.UpdateDescription(c.description)
+	// return repository.Update(newTask)
+	return TaskDTO{}, nil
 }
 
 type MarkTaskAsCompleteCommand struct {
@@ -50,13 +51,14 @@ func NewMarkTaskAsCompleteCommand(taskID string) (*MarkTaskAsCompleteCommand, er
 }
 
 func (c *MarkTaskAsCompleteCommand) Execute(repository ITaskRepository) (TaskDTO, error) {
-	task, err := repository.FindById(c.taskID)
-	if err != nil {
-		return TaskDTO{}, err
-	}
+	// task, err := repository.FindById(c.taskID)
+	// if err != nil {
+	// 	return TaskDTO{}, err
+	// }
 
-	newTask := task.MarkAsComplete()
-	return repository.Update(newTask)
+	// newTask := task.MarkAsComplete()
+	// return repository.Update(newTask)
+	return TaskDTO{}, nil
 }
 
 type MarkTaskAsIncompleted struct {
@@ -73,13 +75,14 @@ func NewMarkTaskAsIncompleteCommand(taskID string) (*MarkTaskAsIncompleted, erro
 }
 
 func (c *MarkTaskAsIncompleted) Execute(repository ITaskRepository) (TaskDTO, error) {
-	task, err := repository.FindById(c.taskID)
-	if err != nil {
-		return TaskDTO{}, err
-	}
+	// task, err := repository.FindById(c.taskID)
+	// if err != nil {
+	// 	return TaskDTO{}, err
+	// }
 
-	newTask := task.MarkAsIncomplete()
-	return repository.Update(newTask)
+	// newTask := task.MarkAsIncomplete()
+	// return repository.Update(newTask)
+	return TaskDTO{}, nil
 }
 
 type MarkAsDeletedCommand struct {
@@ -96,11 +99,12 @@ func NewMarkAsDeletedCommand(taskID string) (*MarkAsDeletedCommand, error) {
 }
 
 func (c *MarkAsDeletedCommand) Execute(repository ITaskRepository) (TaskDTO, error) {
-	task, err := repository.FindById(c.taskID)
-	if err != nil {
-		return TaskDTO{}, err
-	}
+	// task, err := repository.FindById(c.taskID)
+	// if err != nil {
+	// 	return TaskDTO{}, err
+	// }
 
-	newTask := task.MarkAsDeleted()
-	return repository.Update(newTask)
+	// newTask := task.MarkAsDeleted()
+	// return repository.Update(newTask)
+	return TaskDTO{}, nil
 }

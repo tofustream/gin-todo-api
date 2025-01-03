@@ -37,7 +37,7 @@ func main() {
 	taskRouterWithAuth := taskRouter.Group(("/"), auth.AuthMiddleware(os.Getenv("SECRET_KEY")))
 
 	// タスク関連のルートを設定
-	taskRouter.GET("/:id", taskController.FindById)
+	taskRouterWithAuth.GET("/:id", taskController.FindTask)
 	taskRouterWithAuth.GET("", taskController.FindAllByAccountID)
 	taskRouterWithAuth.POST("", taskController.CreateTask)
 	taskRouter.PUT("/:id", taskController.UpdateTaskDescription)
