@@ -36,5 +36,22 @@ services:
     depends_on:
       - db
 
+  cron:
+    image: postgres:17.2-alpine3.21
+    container_name: cron-tasks
+    depends_on:
+      - db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: tododb
+    volumes:
+      - ./cmd/internal/db/maintenance:/maintenance # SQLファイルの配置場所をマウント
+    entrypoint: >
+      sh -c "
+        apk add --no-cache bash &&
+        echo '0 0 * * * psql -U $POSTGRES_USER -d $POSTGRES_DB -h db -f /maintenance/delete_old_deleted_accounts.sql' | crontab - &&
+        crond -f"
+
 volumes:
-  postgres_data:
+  postgres_data: # ボリュームを明示的に定義
