@@ -2,7 +2,6 @@ package task
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 
@@ -11,8 +10,8 @@ import (
 )
 
 type ITaskRepository interface {
-	FindAllByAccountID(accountID account.AccountID) ([]TaskFindAllByAccountIDResponseDTO, error)
-	FindById(id TaskID) (Task, error)
+	FindAllByAccountID(accountID account.AccountID) ([]FindAllByAccountIDResponseDTO, error)
+	FindTask(taskID TaskID, accountID account.AccountID) (Task, error)
 	Add(task Task) error
 	Update(task Task) (TaskDTO, error)
 }
@@ -27,17 +26,24 @@ func NewPostgresTaskRepository(db *sql.DB) ITaskRepository {
 	}
 }
 
-func (r PostgresTaskRepository) FindAllByAccountID(accountID account.AccountID) ([]TaskFindAllByAccountIDResponseDTO, error) {
-	rows, err := r.db.Query("SELECT description, created_at, updated_at, is_completed FROM tasks WHERE account_id = $1 AND is_deleted = false", accountID.Value())
+func (r PostgresTaskRepository) FindAllByAccountID(
+	accountID account.AccountID) ([]FindAllByAccountIDResponseDTO, error) {
+	query := `
+        SELECT id, description, created_at, updated_at, is_completed
+        FROM tasks
+        WHERE account_id = $1 AND is_deleted = false
+    `
+	rows, err := r.db.Query(query, accountID.Value())
 	if err != nil {
 		return nil, fmt.Errorf("failed to query tasks: %w", err)
 	}
 	defer rows.Close()
 
-	tasks := make([]TaskFindAllByAccountIDResponseDTO, 0)
+	tasks := make([]FindAllByAccountIDResponseDTO, 0)
 	for rows.Next() {
-		var dto TaskFindAllByAccountIDResponseDTO
+		var dto FindAllByAccountIDResponseDTO
 		err = rows.Scan(
+			&dto.ID,
 			&dto.Description,
 			&dto.CreatedAt,
 			&dto.UpdatedAt,
@@ -55,19 +61,36 @@ func (r PostgresTaskRepository) FindAllByAccountID(accountID account.AccountID) 
 	return tasks, nil
 }
 
-func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
-	var task Task
-	var fetchedID string
-	var fetchedDescription string
-	var fetchedCreatedAt string
-	var fetchedUpdatedAt string
-	var fetchedCompletedStatus bool
-	var fetchedDeletedStatus bool
-	var fetchedAccountID string
+func (r PostgresTaskRepository) FindTask(taskID TaskID, accountID account.AccountID) (Task, error) {
+	query := "SELECT * FROM tasks WHERE id = $1 AND account_id = $2 AND is_deleted = false"
+	rows := r.db.QueryRow(query, taskID.Value(), accountID.String())
 
-	row := r.db.QueryRow("SELECT * FROM tasks WHERE id = $1 AND is_deleted = false", id.Value())
-	err := row.Scan(
-		&fetchedID,
+	fetchedData, err := scanRowForFindTask(rows)
+	if err != nil {
+		return Task{}, fmt.Errorf("failed to scan row: %w", err)
+	}
+
+	task, err := createTaskFromFetchedData(fetchedData)
+	if err != nil {
+		return Task{}, fmt.Errorf("failed to create task: %w", err)
+	}
+
+	return task, nil
+}
+
+func scanRowForFindTask(rows *sql.Row) (map[string]interface{}, error) {
+	var (
+		fethcedTaskID          string
+		fetchedDescription     string
+		fetchedCreatedAt       string
+		fetchedUpdatedAt       string
+		fetchedCompletedStatus bool
+		fetchedDeletedStatus   bool
+		fetchedAccountID       string
+	)
+
+	err := rows.Scan(
+		&fethcedTaskID,
 		&fetchedDescription,
 		&fetchedCreatedAt,
 		&fetchedUpdatedAt,
@@ -76,25 +99,34 @@ func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 		&fetchedAccountID,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return Task{}, errors.New("task not found")
-		}
-		return Task{}, fmt.Errorf("failed to scan row: %w", err)
+		return nil, err
 	}
 
-	taskID, err := NewTaskIDFromString(fetchedID)
+	return map[string]interface{}{
+		"taskID":          fethcedTaskID,
+		"description":     fetchedDescription,
+		"createdAt":       fetchedCreatedAt,
+		"updatedAt":       fetchedUpdatedAt,
+		"completedStatus": fetchedCompletedStatus,
+		"deletedStatus":   fetchedDeletedStatus,
+		"accountID":       fetchedAccountID,
+	}, nil
+}
+
+func createTaskFromFetchedData(data map[string]interface{}) (Task, error) {
+	taskIDValue, err := NewTaskIDFromString(data["taskID"].(string))
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to create TaskID: %w", err)
 	}
-	desc, err := NewTaskDescription(fetchedDescription)
+	descriptionValue, err := NewTaskDescription(data["description"].(string))
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to create TaskDescription: %w", err)
 	}
-	createdAt, err := time.Parse(time.RFC3339, fetchedCreatedAt)
+	createdAt, err := time.Parse(time.RFC3339, data["createdAt"].(string))
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to parse createdAt: %w", err)
 	}
-	updatedAt, err := time.Parse(time.RFC3339, fetchedUpdatedAt)
+	updatedAt, err := time.Parse(time.RFC3339, data["updatedAt"].(string))
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to parse updatedAt: %w", err)
 	}
@@ -102,28 +134,32 @@ func (r *PostgresTaskRepository) FindById(id TaskID) (Task, error) {
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to create Timestamp: %w", err)
 	}
-	accoutID, err := account.NewAccountIDFromString(fetchedAccountID)
+	accoutID, err := account.NewAccountIDFromString(data["accountID"].(string))
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to create UserID: %w", err)
 	}
 
-	task = NewTaskWithAllFields(
-		taskID,
-		desc,
+	return NewTaskWithAllFields(
+		taskIDValue,
+		descriptionValue,
 		timeStamp,
-		fetchedCompletedStatus,
-		fetchedDeletedStatus,
+		data["completedStatus"].(bool),
+		data["deletedStatus"].(bool),
 		accoutID,
-	)
-	return task, nil
+	), nil
 }
 
 func (r *PostgresTaskRepository) Add(task Task) error {
-	id := task.ID()
-	desc := task.Description()
-	_, err := r.db.Exec("INSERT INTO tasks (id, description, created_at, updated_at, is_completed, is_deleted, account_id) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-		id.Value(),
-		desc.Value(),
+	taskIDValue := task.ID()
+	descriptionValue := task.Description()
+	query := `
+		INSERT INTO tasks (id, description, created_at, updated_at, is_completed, is_deleted, account_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)"
+	`
+	_, err := r.db.Exec(
+		query,
+		taskIDValue.Value(),
+		descriptionValue.Value(),
 		task.CreatedAt().Format(time.RFC3339),
 		task.UpdatedAt().Format(time.RFC3339),
 		task.IsCompleted(),

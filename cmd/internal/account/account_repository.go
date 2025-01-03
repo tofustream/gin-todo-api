@@ -12,7 +12,7 @@ type IAccountRepository interface {
 	FindByID(id AccountID) (*Account, error)
 
 	// メールアドレスでアカウントを取得
-	FindByEmail(email AccountEmail) (*AccountFindByEmailResponseDTO, error)
+	FindByEmail(email AccountEmail) (*FindByEmailResponseDTO, error)
 
 	// 新しいユーザーを追加
 	Add(account Account) error
@@ -38,10 +38,16 @@ func (r PostgresAccountRepository) FindByID(id AccountID) (*Account, error) {
 	return nil, nil
 }
 
-func (r PostgresAccountRepository) FindByEmail(email AccountEmail) (*AccountFindByEmailResponseDTO, error) {
+func (r PostgresAccountRepository) FindByEmail(email AccountEmail) (*FindByEmailResponseDTO, error) {
 	// 専用のDTOを使ってDBから取得したデータを返却
-	var dto AccountFindByEmailResponseDTO
-	err := r.db.QueryRow("SELECT id, email, password FROM accounts WHERE email = $1 AND is_deleted = false", email.Value()).Scan(
+	var dto FindByEmailResponseDTO
+	query := `
+		SELECT id, email, password
+		FROM accounts
+		WHERE email = $1
+		AND is_deleted = false
+	`
+	err := r.db.QueryRow(query, email.Value()).Scan(
 		&dto.ID,
 		&dto.Email,
 		&dto.Password,
@@ -63,7 +69,12 @@ func (r PostgresAccountRepository) Add(account Account) error {
 	}
 
 	// ユーザー情報をDBに追加
-	_, err = r.db.Exec("INSERT INTO accounts (id, email, password, created_at, updated_at, is_deleted) VALUES ($1, $2, $3, $4, $5, $6)",
+	query := `
+		INSERT INTO accounts (id, email, password, created_at, updated_at, is_deleted)
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`
+	_, err = r.db.Exec(
+		query,
 		account.ID().Value(),
 		account.Email().Value(),
 		hashedPassword,
