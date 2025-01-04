@@ -39,16 +39,20 @@ func main() {
 
 	// ミドルウェアで使用するシークレットキーを環境変数から取得
 	secretKey := os.Getenv("SECRET_KEY")
+	if secretKey == "" {
+		log.Fatal("Environment variable SECRET_KEY is not set")
+	}
 
 	accountRouter := r.Group(("/accounts"))
 	accountRouterWithAuth := accountRouter.Group(("/"), auth.AuthMiddleware(secretKey))
+	accountRouterWithAuth.GET("", accountController.FindAccount)
 	accountRouterWithAuth.PATCH("", accountController.UpdateAccount)
 	accountRouterWithAuth.DELETE("", accountController.DeleteAccount)
 
 	taskRouter := r.Group(("/tasks"))
 	taskRouterWithAuth := taskRouter.Group(("/"), auth.AuthMiddleware(secretKey))
 	taskRouterWithAuth.GET("/:id", taskController.FindTask)
-	taskRouterWithAuth.GET("", taskController.FindAllByAccountID)
+	taskRouterWithAuth.GET("", taskController.FindAllTasksByAccountID)
 	taskRouterWithAuth.POST("", taskController.CreateTask)
 	taskRouterWithAuth.PATCH("/:id", taskController.UpdateTask)
 	taskRouterWithAuth.DELETE("/:id", taskController.DeleteTask)

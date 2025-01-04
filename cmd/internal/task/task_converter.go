@@ -1,14 +1,14 @@
 package task
 
-func taskToDTO(task Task) TaskDTO {
-	id := task.ID()
-	description := task.Description()
-	return NewTaskDTO(
-		id.String(),
-		description.Value(),
-		task.CreatedAt().String(),
-		task.UpdatedAt().String(),
-		task.IsCompleted(),
-		task.IsDeleted(),
-	)
+func taskToDTO(task Task) *TaskDTO {
+	dto := TaskDTO{
+		ID:          task.ID().String(),
+		Description: task.Description().Value(),
+		CreatedAt:   task.CreatedAt().String(),
+		UpdatedAt:   task.UpdatedAt().String(),
+		IsCompleted: task.IsCompleted(),
+		IsDeleted:   task.IsDeleted(),
+		AccountID:   task.AccountID().String(),
+	}
+	return &dto
 }

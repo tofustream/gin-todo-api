@@ -10,10 +10,10 @@ import (
 )
 
 type ITaskRepository interface {
-	FindAllByAccountID(accountID account.AccountID) ([]FindAllByAccountIDResponseDTO, error)
+	FindAllTasksByAccountID(accountID account.AccountID) ([]TaskDTO, error)
 	FindTask(taskID TaskID, accountID account.AccountID) (Task, error)
-	Add(task Task) error
-	Update(task Task) (TaskDTO, error)
+	AddTask(task Task) error
+	UpdateTask(task Task) (*TaskDTO, error)
 }
 
 type PostgresTaskRepository struct {
@@ -26,11 +26,10 @@ func NewPostgresTaskRepository(db *sql.DB) ITaskRepository {
 	}
 }
 
-func (r PostgresTaskRepository) FindAllByAccountID(
-	accountID account.AccountID) ([]FindAllByAccountIDResponseDTO, error) {
+func (r PostgresTaskRepository) FindAllTasksByAccountID(
+	accountID account.AccountID) ([]TaskDTO, error) {
 	query := `
-        SELECT id, description, created_at, updated_at, is_completed
-        FROM tasks
+        SELECT * FROM tasks
         WHERE account_id = $1 AND is_deleted = false
     `
 	rows, err := r.db.Query(query, accountID.Value())
@@ -39,20 +38,21 @@ func (r PostgresTaskRepository) FindAllByAccountID(
 	}
 	defer rows.Close()
 
-	tasks := make([]FindAllByAccountIDResponseDTO, 0)
+	tasks := make([]TaskDTO, 0)
 	for rows.Next() {
-		var dto FindAllByAccountIDResponseDTO
+		var dto TaskDTO
 		err = rows.Scan(
 			&dto.ID,
 			&dto.Description,
 			&dto.CreatedAt,
 			&dto.UpdatedAt,
 			&dto.IsCompleted,
+			&dto.IsDeleted,
+			&dto.AccountID,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
-
 		tasks = append(tasks, dto)
 	}
 	if err = rows.Err(); err != nil {
@@ -75,7 +75,7 @@ func (r PostgresTaskRepository) FindTask(taskID TaskID, accountID account.Accoun
 		return Task{}, fmt.Errorf("failed to create task: %w", err)
 	}
 
-	return task, nil
+	return *task, nil
 }
 
 func scanRowForFindTask(rows *sql.Row) (map[string]interface{}, error) {
@@ -113,43 +113,45 @@ func scanRowForFindTask(rows *sql.Row) (map[string]interface{}, error) {
 	}, nil
 }
 
-func createTaskFromFetchedData(data map[string]interface{}) (Task, error) {
+func createTaskFromFetchedData(data map[string]interface{}) (*Task, error) {
 	taskIDValue, err := NewTaskIDFromString(data["taskID"].(string))
 	if err != nil {
-		return Task{}, fmt.Errorf("failed to create TaskID: %w", err)
+		return nil, fmt.Errorf("failed to create TaskID: %w", err)
 	}
 	descriptionValue, err := NewTaskDescription(data["description"].(string))
 	if err != nil {
-		return Task{}, fmt.Errorf("failed to create TaskDescription: %w", err)
+		return nil, fmt.Errorf("failed to create TaskDescription: %w", err)
 	}
 	createdAt, err := time.Parse(time.RFC3339, data["createdAt"].(string))
 	if err != nil {
-		return Task{}, fmt.Errorf("failed to parse createdAt: %w", err)
+		return nil, fmt.Errorf("failed to parse createdAt: %w", err)
 	}
 	updatedAt, err := time.Parse(time.RFC3339, data["updatedAt"].(string))
 	if err != nil {
-		return Task{}, fmt.Errorf("failed to parse updatedAt: %w", err)
+		return nil, fmt.Errorf("failed to parse updatedAt: %w", err)
 	}
 	timeStamp, err := timestamp.NewTimestamp(createdAt, updatedAt)
 	if err != nil {
-		return Task{}, fmt.Errorf("failed to create Timestamp: %w", err)
+		return nil, fmt.Errorf("failed to create Timestamp: %w", err)
 	}
 	accoutID, err := account.NewAccountIDFromString(data["accountID"].(string))
 	if err != nil {
-		return Task{}, fmt.Errorf("failed to create UserID: %w", err)
+		return nil, fmt.Errorf("failed to create UserID: %w", err)
 	}
 
-	return NewTaskWithAllFields(
+	task := NewTaskWithAllFields(
 		taskIDValue,
 		descriptionValue,
 		timeStamp,
 		data["completedStatus"].(bool),
 		data["deletedStatus"].(bool),
 		accoutID,
-	), nil
+	)
+
+	return &task, nil
 }
 
-func (r *PostgresTaskRepository) Add(task Task) error {
+func (r PostgresTaskRepository) AddTask(task Task) error {
 	taskIDValue := task.ID()
 	descriptionValue := task.Description()
 	query := `
@@ -172,16 +174,18 @@ func (r *PostgresTaskRepository) Add(task Task) error {
 	return nil
 }
 
-func (r *PostgresTaskRepository) Update(task Task) (TaskDTO, error) {
+func (r PostgresTaskRepository) UpdateTask(task Task) (*TaskDTO, error) {
 	_, err := r.db.Exec(
 		"UPDATE tasks SET description = $1, updated_at = $2, is_completed = $3, is_deleted = $4 WHERE id = $5",
 		task.Description().Value(),
 		task.UpdatedAt().Format(time.RFC3339),
 		task.IsCompleted(),
 		task.IsDeleted(),
-		task.ID().Value())
+		task.ID().Value(),
+	)
 	if err != nil {
-		return TaskDTO{}, fmt.Errorf("failed to update task: %w", err)
+		return nil, fmt.Errorf("failed to update task: %w", err)
 	}
-	return taskToDTO(task), nil
+	dto := taskToDTO(task)
+	return dto, nil
 }

@@ -15,6 +15,9 @@ type IAccountController interface {
 
 	// アカウントを削除
 	DeleteAccount(ctx *gin.Context)
+
+	// アカウントを取得
+	FindAccount(ctx *gin.Context)
 }
 
 type AccountController struct {
@@ -66,7 +69,6 @@ func (c AccountController) Signup(ctx *gin.Context) {
 func (c AccountController) UpdateAccount(ctx *gin.Context) {
 	accountIDStr, ok := extractAccountID(ctx)
 	if !ok {
-		ctx.AbortWithStatus((http.StatusUnauthorized))
 		return
 	}
 
@@ -139,6 +141,21 @@ func (c AccountController) DeleteAccount(ctx *gin.Context) {
 	}
 
 	dto, err := c.service.UpdateAccount(command)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"account": dto})
+}
+
+func (c AccountController) FindAccount(ctx *gin.Context) {
+	accountIDStr, ok := extractAccountID(ctx)
+	if !ok {
+		return
+	}
+
+	dto, err := c.service.FindAccount(accountIDStr)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

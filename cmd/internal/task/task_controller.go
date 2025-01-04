@@ -9,7 +9,7 @@ import (
 const accountIDKey = "accountID"
 
 type ITaskController interface {
-	FindAllByAccountID(ctx *gin.Context)
+	FindAllTasksByAccountID(ctx *gin.Context)
 	FindTask(ctx *gin.Context)
 	CreateTask(ctx *gin.Context)
 	UpdateTask(ctx *gin.Context)
@@ -34,13 +34,13 @@ func getAccountIDFromContext(ctx *gin.Context) (string, bool) {
 }
 
 // account id に紐付くすべての task を取得する
-func (c TaskController) FindAllByAccountID(ctx *gin.Context) {
+func (c TaskController) FindAllTasksByAccountID(ctx *gin.Context) {
 	accountIDStr, exists := getAccountIDFromContext(ctx)
 	if !exists {
 		ctx.AbortWithStatus((http.StatusUnauthorized))
 		return
 	}
-	dtos, err := c.service.FindAllByAccountID(accountIDStr)
+	dtos, err := c.service.FindAllTasksByAccountID(accountIDStr)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -120,7 +120,7 @@ func (c TaskController) UpdateTask(ctx *gin.Context) {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		_, err = c.service.Update(command)
+		_, err = c.service.UpdateTask(command)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -135,7 +135,7 @@ func (c TaskController) UpdateTask(ctx *gin.Context) {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		_, err = c.service.Update(command)
+		_, err = c.service.UpdateTask(command)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -172,7 +172,7 @@ func (c TaskController) DeleteTask(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	dto, err := c.service.Update(command)
+	dto, err := c.service.UpdateTask(command)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

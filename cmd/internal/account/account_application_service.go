@@ -8,6 +8,7 @@ import (
 )
 
 type IAccountApplicationService interface {
+	// アカウントを取得
 	FindAccount(accountID string) (*AccountDTO, error)
 
 	// アカウントを登録

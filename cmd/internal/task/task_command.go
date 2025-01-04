@@ -3,7 +3,7 @@ package task
 import "github.com/tofustream/gin-todo-api/cmd/internal/account"
 
 type ITaskCommand interface {
-	Execute(repository ITaskRepository) (TaskDTO, error)
+	Execute(repository ITaskRepository) (*TaskDTO, error)
 }
 
 type UpdateTaskDescriptionCommand struct {
@@ -35,13 +35,13 @@ func NewUpdateTaskDescriptionCommand(taskID string, description string, accountI
 	}, nil
 }
 
-func (c UpdateTaskDescriptionCommand) Execute(repository ITaskRepository) (TaskDTO, error) {
+func (c UpdateTaskDescriptionCommand) Execute(repository ITaskRepository) (*TaskDTO, error) {
 	task, err := repository.FindTask(c.taskID, c.accountID)
 	if err != nil {
-		return TaskDTO{}, err
+		return nil, err
 	}
 	newTask := task.UpdateDescription(c.description)
-	return repository.Update(newTask)
+	return repository.UpdateTask(newTask)
 }
 
 type MarkAsDeletedCommand struct {
@@ -65,14 +65,14 @@ func NewMarkAsDeletedCommand(taskID string, accountID string) (*MarkAsDeletedCom
 	}, nil
 }
 
-func (c *MarkAsDeletedCommand) Execute(repository ITaskRepository) (TaskDTO, error) {
+func (c *MarkAsDeletedCommand) Execute(repository ITaskRepository) (*TaskDTO, error) {
 	task, err := repository.FindTask(c.taskID, c.accountID)
 	if err != nil {
-		return TaskDTO{}, err
+		return nil, err
 	}
 
 	newTask := task.MarkAsDeleted()
-	return repository.Update(newTask)
+	return repository.UpdateTask(newTask)
 }
 
 type UpdateTaskStatusCommand struct {
@@ -99,17 +99,17 @@ func NewUpdateTaskStatusCommand(taskID string, isCompleted bool, accountID strin
 	}, nil
 }
 
-func (c UpdateTaskStatusCommand) Execute(repository ITaskRepository) (TaskDTO, error) {
+func (c UpdateTaskStatusCommand) Execute(repository ITaskRepository) (*TaskDTO, error) {
 	task, err := repository.FindTask(c.taskID, c.accountID)
 	if err != nil {
-		return TaskDTO{}, err
+		return nil, err
 	}
 
 	if c.isCompleted {
 		newTask := task.MarkAsComplete()
-		return repository.Update(newTask)
+		return repository.UpdateTask(newTask)
 	}
 
 	newTask := task.MarkAsIncomplete()
-	return repository.Update(newTask)
+	return repository.UpdateTask(newTask)
 }

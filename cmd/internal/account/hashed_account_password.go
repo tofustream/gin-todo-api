@@ -6,6 +6,7 @@ var (
 	ErrEmptyHashedAccountPassword = errors.New("hashed account password is empty")
 )
 
+// ハッシュ化されたアカウントパスワードを表現するための構造体
 type HashedAccountPassword struct {
 	value string
 }
