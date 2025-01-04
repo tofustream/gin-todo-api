@@ -137,3 +137,42 @@ func (c *MarkAsDeletedCommand) Execute(repository ITaskRepository) (TaskDTO, err
 	newTask := task.MarkAsDeleted()
 	return repository.Update(newTask)
 }
+
+type UpdateTaskStatusCommand struct {
+	taskID      TaskID
+	isCompleted bool
+	accountID   account.AccountID
+}
+
+func NewUpdateTaskStatusCommand(taskID string, isCompleted bool, accountID string) (ITaskCommand, error) {
+	taskIDInstance, err := NewTaskIDFromString(taskID)
+	if err != nil {
+		return nil, err
+	}
+
+	accountIDInstance, err := account.NewAccountIDFromString(accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &UpdateTaskStatusCommand{
+		taskID:      taskIDInstance,
+		isCompleted: isCompleted,
+		accountID:   accountIDInstance,
+	}, nil
+}
+
+func (c UpdateTaskStatusCommand) Execute(repository ITaskRepository) (TaskDTO, error) {
+	task, err := repository.FindTask(c.taskID, c.accountID)
+	if err != nil {
+		return TaskDTO{}, err
+	}
+
+	if c.isCompleted {
+		newTask := task.MarkAsComplete()
+		return repository.Update(newTask)
+	}
+
+	newTask := task.MarkAsIncomplete()
+	return repository.Update(newTask)
+}

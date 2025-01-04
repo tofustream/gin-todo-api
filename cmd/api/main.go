@@ -42,8 +42,8 @@ func main() {
 
 	accountRouter := r.Group(("/accounts"))
 	accountRouterWithAuth := accountRouter.Group(("/"), auth.AuthMiddleware(secretKey))
-	accountRouterWithAuth.PUT("/email", accountController.UpdateAccountEmail)
-	accountRouterWithAuth.PUT("/password", accountController.UpdateAccountPassword)
+	accountRouterWithAuth.PATCH("/email", accountController.UpdateAccountEmail)
+	accountRouterWithAuth.PATCH("/password", accountController.UpdateAccountPassword)
 	accountRouterWithAuth.DELETE("", accountController.DeleteAccount)
 
 	taskRouter := r.Group(("/tasks"))
@@ -51,9 +51,10 @@ func main() {
 	taskRouterWithAuth.GET("/:id", taskController.FindTask)
 	taskRouterWithAuth.GET("", taskController.FindAllByAccountID)
 	taskRouterWithAuth.POST("", taskController.CreateTask)
-	taskRouterWithAuth.PUT("/:id", taskController.UpdateTaskDescription)
+	taskRouterWithAuth.PATCH("/:id", taskController.UpdateTaskDescription)
 	taskRouterWithAuth.PUT("/:id/complete", taskController.MarkTaskAsCompleted)     // PATCH に変更予定
 	taskRouterWithAuth.PUT("/:id/incomplete", taskController.MarkTaskAsIncompleted) // PATCH に変更予定
+	taskRouterWithAuth.PATCH("/:id/", taskController.UpdateTaskStatus)
 	taskRouterWithAuth.DELETE("/:id", taskController.DeleteTask)
 
 	// サーバーをポート8080で起動

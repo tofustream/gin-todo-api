@@ -15,6 +15,7 @@ type ITaskController interface {
 	UpdateTaskDescription(ctx *gin.Context)
 	MarkTaskAsCompleted(ctx *gin.Context)
 	MarkTaskAsIncompleted(ctx *gin.Context)
+	UpdateTaskStatus(ctx *gin.Context)
 	DeleteTask(ctx *gin.Context)
 }
 
@@ -154,6 +155,34 @@ func (c TaskController) MarkTaskAsIncompleted(ctx *gin.Context) {
 	}
 	taskIDStr := ctx.Param("id")
 	command, err := NewMarkTaskAsIncompleteCommand(taskIDStr, accountIDStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	dto, err := c.service.Update(command)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"task": dto})
+}
+
+func (c TaskController) UpdateTaskStatus(ctx *gin.Context) {
+	accountIDStr, exists := getAccountIDFromContext(ctx)
+	if !exists {
+		ctx.AbortWithStatus((http.StatusUnauthorized))
+		return
+	}
+	taskIDStr := ctx.Param("id")
+	var json struct {
+		IsCompleted bool `json:"status"`
+	}
+	if err := ctx.ShouldBindJSON(&json); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	command, err := NewUpdateTaskStatusCommand(taskIDStr, json.IsCompleted, accountIDStr)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
