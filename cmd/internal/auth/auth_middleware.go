@@ -45,7 +45,6 @@ func AuthMiddleware(secretKey string) gin.HandlerFunc {
 		// トークンが有効な場合、次のハンドラに進む
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			ctx.Set("accountID", claims["sub"])
-			ctx.Set("email", claims["email"])
 		} else {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
 			ctx.Abort()
