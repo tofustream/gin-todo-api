@@ -8,6 +8,8 @@ import (
 )
 
 type IAccountApplicationService interface {
+	FindAccount(accountID string) (*AccountDTO, error)
+
 	// アカウントを登録
 	Signup(email string, plainPassword string) error
 
@@ -23,6 +25,21 @@ func NewAccountApplicationService(repository IAccountRepository) IAccountApplica
 	return &AccountApplicationService{
 		repository: repository,
 	}
+}
+
+func (s AccountApplicationService) FindAccount(accountID string) (*AccountDTO, error) {
+	accountIDInstance, err := NewAccountIDFromString(accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	dto, err := s.repository.FindAccount(accountIDInstance)
+	if err != nil {
+		return nil, err
+	}
+
+	return dto, nil
+
 }
 
 // アカウントエンティティを生成

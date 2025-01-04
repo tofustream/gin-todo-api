@@ -42,8 +42,7 @@ func main() {
 
 	accountRouter := r.Group(("/accounts"))
 	accountRouterWithAuth := accountRouter.Group(("/"), auth.AuthMiddleware(secretKey))
-	accountRouterWithAuth.PATCH("/email", accountController.UpdateAccountEmail)
-	accountRouterWithAuth.PATCH("/password", accountController.UpdateAccountPassword)
+	accountRouterWithAuth.PATCH("", accountController.UpdateAccount)
 	accountRouterWithAuth.DELETE("", accountController.DeleteAccount)
 
 	taskRouter := r.Group(("/tasks"))
