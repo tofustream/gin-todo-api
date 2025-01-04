@@ -50,7 +50,11 @@ services:
     entrypoint: >
       sh -c "
         apk add --no-cache bash &&
-        echo '0 0 * * * psql -U $POSTGRES_USER -d $POSTGRES_DB -h db -f /maintenance/delete_old_deleted_accounts.sql' | crontab - &&
+        until pg_isready -h db -p 5432 -U $POSTGRES_USER; do
+          echo 'Waiting for PostgreSQL...'
+          sleep 3
+        done &&
+        echo '0 0 * * * PGPASSWORD=$POSTGRES_PASSWORD psql -U $POSTGRES_USER -d $POSTGRES_DB -h db -f /maintenance/delete_old_deleted_accounts.sql' | crontab - &&
         crond -f"
 
 volumes:

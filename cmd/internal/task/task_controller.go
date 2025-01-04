@@ -12,10 +12,7 @@ type ITaskController interface {
 	FindAllByAccountID(ctx *gin.Context)
 	FindTask(ctx *gin.Context)
 	CreateTask(ctx *gin.Context)
-	UpdateTaskDescription(ctx *gin.Context)
-	MarkTaskAsCompleted(ctx *gin.Context)
-	MarkTaskAsIncompleted(ctx *gin.Context)
-	UpdateTaskStatus(ctx *gin.Context)
+	UpdateTask(ctx *gin.Context)
 	DeleteTask(ctx *gin.Context)
 }
 
@@ -95,105 +92,72 @@ func (c TaskController) CreateTask(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"message": "task created"})
 }
 
-// task の description を更新する
-func (c TaskController) UpdateTaskDescription(ctx *gin.Context) {
+func (c TaskController) UpdateTask(ctx *gin.Context) {
 	accountIDStr, exists := getAccountIDFromContext(ctx)
 	if !exists {
-		ctx.AbortWithStatus((http.StatusUnauthorized))
+		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
 	taskIDStr := ctx.Param("id")
 	var json struct {
-		Description string `json:"description"`
+		Description *string `json:"description,omitempty"`
+		IsCompleted *bool   `json:"is_completed,omitempty"`
 	}
+
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	command, err := NewUpdateTaskDescriptionCommand(taskIDStr, json.Description, accountIDStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 更新フラグ
+	isUpdated := false
+
+	// description の更新
+	if json.Description != nil {
+		command, err := NewUpdateTaskDescriptionCommand(taskIDStr, *json.Description, accountIDStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		_, err = c.service.Update(command)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		isUpdated = true
+	}
+
+	// status の更新
+	if json.IsCompleted != nil {
+		command, err := NewUpdateTaskStatusCommand(taskIDStr, *json.IsCompleted, accountIDStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		_, err = c.service.Update(command)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		isUpdated = true
+	}
+
+	// 更新されなかった場合
+	if !isUpdated {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "No valid fields to update"})
 		return
 	}
-	dto, err := c.service.Update(command)
+
+	// 更新後の最新タスクを取得
+	taskDTO, err := c.service.FindTask(taskIDStr, accountIDStr)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"task": dto})
-}
-
-func (c TaskController) MarkTaskAsCompleted(ctx *gin.Context) {
-	accountIDStr, exists := getAccountIDFromContext(ctx)
-	if !exists {
-		ctx.AbortWithStatus((http.StatusUnauthorized))
-		return
-	}
-	taskIDStr := ctx.Param("id")
-	command, err := NewMarkTaskAsCompleteCommand(taskIDStr, accountIDStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	dto, err := c.service.Update(command)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"task": dto})
-}
-
-func (c TaskController) MarkTaskAsIncompleted(ctx *gin.Context) {
-	accountIDStr, exists := getAccountIDFromContext(ctx)
-	if !exists {
-		ctx.AbortWithStatus((http.StatusUnauthorized))
-		return
-	}
-	taskIDStr := ctx.Param("id")
-	command, err := NewMarkTaskAsIncompleteCommand(taskIDStr, accountIDStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	dto, err := c.service.Update(command)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"task": dto})
-}
-
-func (c TaskController) UpdateTaskStatus(ctx *gin.Context) {
-	accountIDStr, exists := getAccountIDFromContext(ctx)
-	if !exists {
-		ctx.AbortWithStatus((http.StatusUnauthorized))
-		return
-	}
-	taskIDStr := ctx.Param("id")
-	var json struct {
-		IsCompleted bool `json:"status"`
-	}
-	if err := ctx.ShouldBindJSON(&json); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	command, err := NewUpdateTaskStatusCommand(taskIDStr, json.IsCompleted, accountIDStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	dto, err := c.service.Update(command)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"task": dto})
+	// 更新結果を返却
+	ctx.JSON(http.StatusOK, gin.H{"task": taskDTO})
 }
 
 func (c TaskController) DeleteTask(ctx *gin.Context) {

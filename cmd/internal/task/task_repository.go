@@ -153,9 +153,9 @@ func (r *PostgresTaskRepository) Add(task Task) error {
 	taskIDValue := task.ID()
 	descriptionValue := task.Description()
 	query := `
-		INSERT INTO tasks (id, description, created_at, updated_at, is_completed, is_deleted, account_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)"
-	`
+        INSERT INTO tasks (id, description, created_at, updated_at, is_completed, is_deleted, account_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `
 	_, err := r.db.Exec(
 		query,
 		taskIDValue.Value(),

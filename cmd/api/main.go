@@ -51,10 +51,7 @@ func main() {
 	taskRouterWithAuth.GET("/:id", taskController.FindTask)
 	taskRouterWithAuth.GET("", taskController.FindAllByAccountID)
 	taskRouterWithAuth.POST("", taskController.CreateTask)
-	taskRouterWithAuth.PATCH("/:id", taskController.UpdateTaskDescription)
-	taskRouterWithAuth.PUT("/:id/complete", taskController.MarkTaskAsCompleted)     // PATCH に変更予定
-	taskRouterWithAuth.PUT("/:id/incomplete", taskController.MarkTaskAsIncompleted) // PATCH に変更予定
-	taskRouterWithAuth.PATCH("/:id/", taskController.UpdateTaskStatus)
+	taskRouterWithAuth.PATCH("/:id", taskController.UpdateTask)
 	taskRouterWithAuth.DELETE("/:id", taskController.DeleteTask)
 
 	// サーバーをポート8080で起動
