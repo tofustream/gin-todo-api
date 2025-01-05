@@ -1,9 +1,5 @@
 package account
 
-import (
-	"time"
-)
-
 type IAccountCommand interface {
 	Execute(repository IAccountRepository) error
 }
@@ -31,35 +27,14 @@ func NewUpdateAccountEmailCommand(accountID string, email string) (IAccountComma
 }
 
 func (c UpdateAccountEmailCommand) Execute(repository IAccountRepository) error {
-	dto, err := repository.FindAccount(c.accountID)
+	fetchedAccount, err := repository.FindAccount(c.accountID)
 	if err != nil {
 		return err
 	}
 
-	accountIDInstance, err := NewAccountIDFromUUID(dto.ID)
-	if err != nil {
-		return err
-	}
+	updatedAccount := fetchedAccount.UpdateEmail(c.email)
 
-	newEmailInstance, err := NewAccountEmail(c.email.Value())
-	if err != nil {
-		return err
-	}
-
-	hashedPasswordInstance, err := NewHashedAccountPassword(dto.Password)
-	if err != nil {
-		return err
-	}
-
-	updatedAccount := NewUpdatedAccount(
-		accountIDInstance,
-		newEmailInstance,
-		hashedPasswordInstance,
-		time.Now(),
-		dto.IsDeleted,
-	)
-
-	return repository.UpdateAccount(updatedAccount)
+	return repository.UpdateAccount(*updatedAccount)
 }
 
 type UpdateAccountPasswordCommand struct {
@@ -85,39 +60,22 @@ func NewUpdateAccountPasswordCommand(accountID string, password string) (IAccoun
 }
 
 func (c UpdateAccountPasswordCommand) Execute(repository IAccountRepository) error {
-	dto, err := repository.FindAccount(c.accountID)
+	fetchedAccount, err := repository.FindAccount(c.accountID)
 	if err != nil {
 		return err
 	}
 
-	accountIDInstance, err := NewAccountIDFromUUID(dto.ID)
+	hashedValue, err := c.password.HashedValue()
 	if err != nil {
 		return err
 	}
-
-	emailInstance, err := NewAccountEmail(dto.Email)
+	hashedPassword, err := NewHashedAccountPassword(string(hashedValue))
 	if err != nil {
 		return err
 	}
+	updatedAccount := fetchedAccount.UpdatePassword(hashedPassword)
 
-	hashedPassword, err := c.password.HashedValue()
-	if err != nil {
-		return err
-	}
-	newHashedPasswordInstance, err := NewHashedAccountPassword(string(hashedPassword))
-	if err != nil {
-		return err
-	}
-
-	updatedAccount := NewUpdatedAccount(
-		accountIDInstance,
-		emailInstance,
-		newHashedPasswordInstance,
-		time.Now(),
-		dto.IsDeleted,
-	)
-
-	return repository.UpdateAccount(updatedAccount)
+	return repository.UpdateAccount(*updatedAccount)
 }
 
 type MarkAsDeletedCommand struct {
@@ -136,33 +94,12 @@ func NewMarkAsDeletedCommand(accountID string) (IAccountCommand, error) {
 }
 
 func (c MarkAsDeletedCommand) Execute(repository IAccountRepository) error {
-	dto, err := repository.FindAccount(c.accountID)
+	fetchedAccount, err := repository.FindAccount(c.accountID)
 	if err != nil {
 		return err
 	}
 
-	accountIDInstance, err := NewAccountIDFromUUID(dto.ID)
-	if err != nil {
-		return err
-	}
+	updatedAccount := fetchedAccount.MarkAsDeleted()
 
-	emailInstance, err := NewAccountEmail(dto.Email)
-	if err != nil {
-		return err
-	}
-
-	hashedPasswordInstance, err := NewHashedAccountPassword(dto.Password)
-	if err != nil {
-		return err
-	}
-
-	updatedAccount := NewUpdatedAccount(
-		accountIDInstance,
-		emailInstance,
-		hashedPasswordInstance,
-		time.Now(),
-		true, // Mark as deleted
-	)
-
-	return repository.UpdateAccount(updatedAccount)
+	return repository.UpdateAccount(*updatedAccount)
 }

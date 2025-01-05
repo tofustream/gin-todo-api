@@ -9,7 +9,7 @@ import (
 
 type IAccountApplicationService interface {
 	// アカウントを取得
-	FindAccount(accountID string) (*AccountDTO, error)
+	FindAccount(accountID string) (*FetchedAccountDTO, error)
 
 	// アカウントを登録
 	Signup(email string, plainPassword string) error
@@ -28,19 +28,20 @@ func NewAccountApplicationService(repository IAccountRepository) IAccountApplica
 	}
 }
 
-func (s AccountApplicationService) FindAccount(accountID string) (*AccountDTO, error) {
+func (s AccountApplicationService) FindAccount(accountID string) (*FetchedAccountDTO, error) {
 	accountIDInstance, err := NewAccountIDFromString(accountID)
 	if err != nil {
 		return nil, err
 	}
 
-	dto, err := s.repository.FindAccount(accountIDInstance)
+	fetchedAccount, err := s.repository.FindAccount(accountIDInstance)
 	if err != nil {
 		return nil, err
 	}
 
-	return dto, nil
+	dto := FetchedAccountToDTO(*fetchedAccount)
 
+	return &dto, nil
 }
 
 // アカウントエンティティを生成
