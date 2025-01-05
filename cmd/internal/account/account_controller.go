@@ -76,7 +76,7 @@ func (c AccountController) UpdateAccount(ctx *gin.Context) {
 			return
 		}
 
-		_, err = c.service.UpdateAccount(command)
+		err = c.service.UpdateAccount(command)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -91,7 +91,7 @@ func (c AccountController) UpdateAccount(ctx *gin.Context) {
 			return
 		}
 
-		_, err = c.service.UpdateAccount(command)
+		err = c.service.UpdateAccount(command)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -127,13 +127,13 @@ func (c AccountController) DeleteAccount(ctx *gin.Context) {
 		return
 	}
 
-	dto, err := c.service.UpdateAccount(command)
+	err = c.service.UpdateAccount(command)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"account": dto})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Account deleted"})
 }
 
 func (c AccountController) FindAccount(ctx *gin.Context) {

@@ -21,7 +21,7 @@ type IAccountRepository interface {
 	AddAccount(account Account) error
 
 	// 既存のユーザー情報を更新
-	UpdateAccount(updatedAccount UpdatedAccount) (*AccountDTO, error)
+	UpdateAccount(updatedAccount UpdatedAccount) error
 }
 
 type PostgresAccountRepository struct {
@@ -106,10 +106,11 @@ func (r PostgresAccountRepository) AddAccount(account Account) error {
 		account.UpdatedAt(),
 		account.IsDeleted(),
 	)
+
 	return err
 }
 
-func (r PostgresAccountRepository) UpdateAccount(updatedAccount UpdatedAccount) (*AccountDTO, error) {
+func (r PostgresAccountRepository) UpdateAccount(updatedAccount UpdatedAccount) error {
 	query := `
 		UPDATE accounts
 		SET email = $1, password = $2, updated_at = $3, is_deleted = $4
@@ -124,13 +125,8 @@ func (r PostgresAccountRepository) UpdateAccount(updatedAccount UpdatedAccount) 
 		updatedAccount.ID().String(),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update task: %w", err)
+		return fmt.Errorf("failed to update task: %w", err)
 	}
 
-	dto, err := r.FindAccount(updatedAccount.ID())
-	if err != nil {
-		return nil, err
-	}
-
-	return dto, nil
+	return nil
 }

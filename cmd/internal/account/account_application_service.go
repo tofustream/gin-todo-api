@@ -15,7 +15,7 @@ type IAccountApplicationService interface {
 	Signup(email string, plainPassword string) error
 
 	// アカウント情報を更新
-	UpdateAccount(command IAccountCommand) (*AccountDTO, error)
+	UpdateAccount(command IAccountCommand) error
 }
 
 type AccountApplicationService struct {
@@ -83,6 +83,6 @@ func (s AccountApplicationService) Signup(email string, plainPassword string) er
 	return s.repository.AddAccount(*newAccount)
 }
 
-func (s AccountApplicationService) UpdateAccount(command IAccountCommand) (*AccountDTO, error) {
+func (s AccountApplicationService) UpdateAccount(command IAccountCommand) error {
 	return command.Execute(s.repository)
 }
