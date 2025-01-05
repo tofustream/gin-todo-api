@@ -39,7 +39,7 @@ func (s AccountApplicationService) FindAccount(accountID string) (*FetchedAccoun
 		return nil, err
 	}
 
-	dto := FetchedAccountToDTO(*fetchedAccount)
+	dto := fetchedAccountToDTO(*fetchedAccount)
 
 	return &dto, nil
 }

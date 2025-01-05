@@ -1,6 +1,6 @@
 package account
 
-func FetchedAccountToDTO(fetchedAccount FetchedAccount) FetchedAccountDTO {
+func fetchedAccountToDTO(fetchedAccount FetchedAccount) FetchedAccountDTO {
 	return FetchedAccountDTO{
 		ID:        fetchedAccount.ID().Value(),
 		Email:     fetchedAccount.Email().Value(),
