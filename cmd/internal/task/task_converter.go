@@ -1,6 +1,6 @@
 package task
 
-// is_deleteは自明なので省略
+// is_deletedは自明なので省略
 func taskToDTO(task Task) *TaskDTO {
 	dto := TaskDTO{
 		ID:          task.ID().String(),
