@@ -1,5 +1,6 @@
 package task
 
+// is_deleteは自明なので省略
 func taskToDTO(task Task) *TaskDTO {
 	dto := TaskDTO{
 		ID:          task.ID().String(),
@@ -7,7 +8,6 @@ func taskToDTO(task Task) *TaskDTO {
 		CreatedAt:   task.CreatedAt().String(),
 		UpdatedAt:   task.UpdatedAt().String(),
 		IsCompleted: task.IsCompleted(),
-		IsDeleted:   task.IsDeleted(),
 		AccountID:   task.AccountID().String(),
 	}
 	return &dto
