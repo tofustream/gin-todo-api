@@ -62,24 +62,29 @@ func (r PostgresTaskRepository) FindAllTasksByAccountID(
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
-		taskID, err := NewTaskIDFromString(fethcedTaskIDValue)
+		fetchedTaskID, err := NewTaskIDFromString(fethcedTaskIDValue)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create TaskID: %w", err)
 		}
-		description, err := NewTaskDescription(fetchedDescriptionValue)
+		fetchedDescription, err := NewTaskDescription(fetchedDescriptionValue)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create TaskDescription: %w", err)
 		}
-		timeStamp, err := timestamp.NewTimestamp(fetchedCreatedAtValue, fetchedUpdatedAtValue)
+		fetchedTimestamp, err := timestamp.NewTimestamp(fetchedCreatedAtValue, fetchedUpdatedAtValue)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Timestamp: %w", err)
 		}
-		accountID, err := account.NewAccountIDFromString(fetchedAccountIDValue)
+		fetchedAccountID, err := account.NewAccountIDFromString(fetchedAccountIDValue)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create AccountID: %w", err)
 		}
 		task := NewTaskWithAllFields(
-			taskID, description, timeStamp, isCompleted, isDeleted, accountID,
+			fetchedTaskID,
+			fetchedDescription,
+			fetchedTimestamp,
+			isCompleted,
+			isDeleted,
+			fetchedAccountID,
 		)
 
 		tasks = append(tasks, task)
@@ -96,87 +101,51 @@ func (r PostgresTaskRepository) FindTask(taskID TaskID, accountID account.Accoun
 	query := "SELECT * FROM tasks WHERE id = $1 AND account_id = $2 AND is_deleted = false"
 	rows := r.db.QueryRow(query, taskID.Value(), accountID.String())
 
-	fetchedData, err := scanRowForFindTask(rows)
-	if err != nil {
-		return nil, fmt.Errorf("failed to scan row: %w", err)
-	}
-
-	task, err := createTaskFromFetchedData(fetchedData)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create task: %w", err)
-	}
-
-	return task, nil
-}
-
-func scanRowForFindTask(rows *sql.Row) (map[string]interface{}, error) {
 	var (
-		fethcedTaskID          string
-		fetchedDescription     string
-		fetchedCreatedAt       string
-		fetchedUpdatedAt       string
-		fetchedCompletedStatus bool
-		fetchedDeletedStatus   bool
-		fetchedAccountID       string
+		fethcedTaskIDValue      string
+		fetchedDescriptionValue string
+		fetchedCreatedAtValue   time.Time
+		fetchedUpdatedAtValue   time.Time
+		isCompleted             bool
+		isDeleted               bool
+		fetchedAccountIDValue   string
 	)
-
 	err := rows.Scan(
-		&fethcedTaskID,
-		&fetchedDescription,
-		&fetchedCreatedAt,
-		&fetchedUpdatedAt,
-		&fetchedCompletedStatus,
-		&fetchedDeletedStatus,
-		&fetchedAccountID,
+		&fethcedTaskIDValue,
+		&fetchedDescriptionValue,
+		&fetchedCreatedAtValue,
+		&fetchedUpdatedAtValue,
+		&isCompleted,
+		&isDeleted,
+		&fetchedAccountIDValue,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return map[string]interface{}{
-		"taskID":          fethcedTaskID,
-		"description":     fetchedDescription,
-		"createdAt":       fetchedCreatedAt,
-		"updatedAt":       fetchedUpdatedAt,
-		"completedStatus": fetchedCompletedStatus,
-		"deletedStatus":   fetchedDeletedStatus,
-		"accountID":       fetchedAccountID,
-	}, nil
-}
-
-func createTaskFromFetchedData(data map[string]interface{}) (*Task, error) {
-	taskIDValue, err := NewTaskIDFromString(data["taskID"].(string))
+	fetchedTaskID, err := NewTaskIDFromString(fethcedTaskIDValue)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create TaskID: %w", err)
 	}
-	descriptionValue, err := NewTaskDescription(data["description"].(string))
+	fetchedDescription, err := NewTaskDescription(fetchedDescriptionValue)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create TaskDescription: %w", err)
 	}
-	createdAt, err := time.Parse(time.RFC3339, data["createdAt"].(string))
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse createdAt: %w", err)
-	}
-	updatedAt, err := time.Parse(time.RFC3339, data["updatedAt"].(string))
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse updatedAt: %w", err)
-	}
-	timeStamp, err := timestamp.NewTimestamp(createdAt, updatedAt)
+	fetchedTimestamp, err := timestamp.NewTimestamp(fetchedCreatedAtValue, fetchedUpdatedAtValue)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Timestamp: %w", err)
 	}
-	accoutID, err := account.NewAccountIDFromString(data["accountID"].(string))
+	fetchedAccountID, err := account.NewAccountIDFromString(fetchedAccountIDValue)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create UserID: %w", err)
+		return nil, fmt.Errorf("failed to create AccountID: %w", err)
 	}
-
 	task := NewTaskWithAllFields(
-		taskIDValue,
-		descriptionValue,
-		timeStamp,
-		data["completedStatus"].(bool),
-		data["deletedStatus"].(bool),
-		accoutID,
+		fetchedTaskID,
+		fetchedDescription,
+		fetchedTimestamp,
+		isCompleted,
+		isDeleted,
+		fetchedAccountID,
 	)
 
 	return &task, nil
