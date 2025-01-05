@@ -13,7 +13,7 @@ type AccountRegistrationResponseDTO struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type FindByEmailResponseDTO struct {
+type FindAccountByEmailResponseDTO struct {
 	ID       uuid.UUID `json:"id"`
 	Email    string    `json:"email"`
 	Password string    `json:"password"`

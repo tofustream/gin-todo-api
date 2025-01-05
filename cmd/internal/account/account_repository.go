@@ -15,7 +15,7 @@ type IAccountRepository interface {
 	FindAccount(id AccountID) (*AccountDTO, error)
 
 	// メールアドレスでアカウントを取得
-	FindAccountByEmail(email AccountEmail) (*FindByEmailResponseDTO, error)
+	FindAccountByEmail(email AccountEmail) (*FindAccountByEmailResponseDTO, error)
 
 	// 新しいユーザーを追加
 	AddAccount(account Account) error
@@ -61,9 +61,9 @@ func (r PostgresAccountRepository) FindAccount(id AccountID) (*AccountDTO, error
 	return &dto, nil
 }
 
-func (r PostgresAccountRepository) FindAccountByEmail(email AccountEmail) (*FindByEmailResponseDTO, error) {
+func (r PostgresAccountRepository) FindAccountByEmail(email AccountEmail) (*FindAccountByEmailResponseDTO, error) {
 	// 専用のDTOを使ってDBから取得したデータを返却
-	var dto FindByEmailResponseDTO
+	var dto FindAccountByEmailResponseDTO
 	query := `
 		SELECT id, email, password
 		FROM accounts
