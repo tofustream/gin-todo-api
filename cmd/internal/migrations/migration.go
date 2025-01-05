@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -37,6 +36,6 @@ func main() {
 		}
 
 		// 成功メッセージ
-		fmt.Printf("Migration from file %s executed successfully\n", migrationFile)
+		log.Printf("Migration from file %s executed successfully\n", migrationFile)
 	}
 }

@@ -1,4 +1,3 @@
-# ベースイメージ
 FROM golang:1.23.4-alpine3.20
 
 # 必要なツールをインストール
@@ -20,5 +19,7 @@ RUN go mod download
 # ソースコードをすべてコピー
 COPY . .
 
-# ホットリロードの実行
-CMD ["air"]
+RUN chmod +x ./entrypoint.sh
+
+# エントリーポイントを設定
+ENTRYPOINT ["./entrypoint.sh"]
