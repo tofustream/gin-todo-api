@@ -29,16 +29,6 @@ func NewAccount(
 	}
 }
 
-func (a Account) MarkAsDeleted() Account {
-	return Account{
-		id:        a.id,
-		email:     a.email,
-		password:  a.password,
-		timestamp: a.timestamp,
-		isDeleted: true,
-	}
-}
-
 func (a Account) ID() AccountID {
 	return a.id
 }
