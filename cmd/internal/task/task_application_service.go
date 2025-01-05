@@ -9,7 +9,7 @@ type ITaskApplicationService interface {
 	FindAllTasksByAccountID(accountID string) ([]TaskDTO, error)
 	FindTask(taskID string, accountID string) (*TaskDTO, error)
 	CreateTask(description string, accountID string) error
-	UpdateTask(command ITaskCommand) (*TaskDTO, error)
+	UpdateTask(command ITaskCommand) error
 }
 
 type TaskApplicationService struct {
@@ -73,6 +73,6 @@ func (s TaskApplicationService) CreateTask(description string, accountID string)
 	return s.repository.AddTask(task)
 }
 
-func (s TaskApplicationService) UpdateTask(command ITaskCommand) (*TaskDTO, error) {
+func (s TaskApplicationService) UpdateTask(command ITaskCommand) error {
 	return command.Execute(s.repository)
 }

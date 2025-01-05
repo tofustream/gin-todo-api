@@ -3,7 +3,7 @@ package task
 import "github.com/tofustream/gin-todo-api/cmd/internal/account"
 
 type ITaskCommand interface {
-	Execute(repository ITaskRepository) (*TaskDTO, error)
+	Execute(repository ITaskRepository) error
 }
 
 type UpdateTaskDescriptionCommand struct {
@@ -35,10 +35,10 @@ func NewUpdateTaskDescriptionCommand(taskID string, description string, accountI
 	}, nil
 }
 
-func (c UpdateTaskDescriptionCommand) Execute(repository ITaskRepository) (*TaskDTO, error) {
+func (c UpdateTaskDescriptionCommand) Execute(repository ITaskRepository) error {
 	task, err := repository.FindTask(c.taskID, c.accountID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	newTask := task.UpdateDescription(c.description)
 	return repository.UpdateTask(newTask)
@@ -65,10 +65,10 @@ func NewMarkAsDeletedCommand(taskID string, accountID string) (*MarkAsDeletedCom
 	}, nil
 }
 
-func (c *MarkAsDeletedCommand) Execute(repository ITaskRepository) (*TaskDTO, error) {
+func (c *MarkAsDeletedCommand) Execute(repository ITaskRepository) error {
 	task, err := repository.FindTask(c.taskID, c.accountID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	newTask := task.MarkAsDeleted()
@@ -99,10 +99,10 @@ func NewUpdateTaskStatusCommand(taskID string, isCompleted bool, accountID strin
 	}, nil
 }
 
-func (c UpdateTaskStatusCommand) Execute(repository ITaskRepository) (*TaskDTO, error) {
+func (c UpdateTaskStatusCommand) Execute(repository ITaskRepository) error {
 	task, err := repository.FindTask(c.taskID, c.accountID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if c.isCompleted {

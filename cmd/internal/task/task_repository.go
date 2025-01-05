@@ -13,7 +13,7 @@ type ITaskRepository interface {
 	FindAllTasksByAccountID(accountID account.AccountID) ([]TaskDTO, error)
 	FindTask(taskID TaskID, accountID account.AccountID) (Task, error)
 	AddTask(task Task) error
-	UpdateTask(task Task) (*TaskDTO, error)
+	UpdateTask(task Task) error
 }
 
 type PostgresTaskRepository struct {
@@ -174,7 +174,7 @@ func (r PostgresTaskRepository) AddTask(task Task) error {
 	return nil
 }
 
-func (r PostgresTaskRepository) UpdateTask(task Task) (*TaskDTO, error) {
+func (r PostgresTaskRepository) UpdateTask(task Task) error {
 	_, err := r.db.Exec(
 		"UPDATE tasks SET description = $1, updated_at = $2, is_completed = $3, is_deleted = $4 WHERE id = $5",
 		task.Description().Value(),
@@ -184,8 +184,8 @@ func (r PostgresTaskRepository) UpdateTask(task Task) (*TaskDTO, error) {
 		task.ID().Value(),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update task: %w", err)
+		return fmt.Errorf("failed to update task: %w", err)
 	}
-	dto := taskToDTO(task)
-	return dto, nil
+
+	return nil
 }
