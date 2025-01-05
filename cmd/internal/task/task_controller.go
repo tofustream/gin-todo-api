@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tofustream/gin-todo-api/cmd/internal/auth"
+	"github.com/tofustream/gin-todo-api/cmd/internal/auth/authhelper"
 )
 
 const accountIDKey = "accountID"
@@ -27,7 +27,7 @@ func NewTaskController(service ITaskApplicationService) ITaskController {
 
 // account id に紐付くすべての task を取得する
 func (c TaskController) FindAllTasksByAccountID(ctx *gin.Context) {
-	accountIDStr, exists := auth.GetAccountIDFromContext(ctx)
+	accountIDStr, exists := authhelper.GetAccountIDFromContext(ctx)
 	if !exists {
 		ctx.AbortWithStatus((http.StatusUnauthorized))
 		return
@@ -43,12 +43,11 @@ func (c TaskController) FindAllTasksByAccountID(ctx *gin.Context) {
 
 // task id と account id から task を取得する
 func (c TaskController) FindTask(ctx *gin.Context) {
-	accountIDStr, exists := auth.GetAccountIDFromContext(ctx)
+	accountIDStr, exists := authhelper.GetAccountIDFromContext(ctx)
 	if !exists {
 		ctx.AbortWithStatus((http.StatusUnauthorized))
 		return
 	}
-
 	taskIDStr := ctx.Param("id")
 	task, err := c.service.FindTask(taskIDStr, accountIDStr)
 	if err != nil {
@@ -61,7 +60,7 @@ func (c TaskController) FindTask(ctx *gin.Context) {
 
 // task を作成する
 func (c TaskController) CreateTask(ctx *gin.Context) {
-	accountIDStr, exists := auth.GetAccountIDFromContext(ctx)
+	accountIDStr, exists := authhelper.GetAccountIDFromContext(ctx)
 	if !exists {
 		ctx.AbortWithStatus((http.StatusUnauthorized))
 		return
@@ -85,7 +84,7 @@ func (c TaskController) CreateTask(ctx *gin.Context) {
 }
 
 func (c TaskController) UpdateTask(ctx *gin.Context) {
-	accountIDStr, exists := auth.GetAccountIDFromContext(ctx)
+	accountIDStr, exists := authhelper.GetAccountIDFromContext(ctx)
 	if !exists {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
@@ -142,19 +141,12 @@ func (c TaskController) UpdateTask(ctx *gin.Context) {
 		return
 	}
 
-	// 更新後の最新タスクを取得
-	// taskDTO, err := c.service.FindTask(taskIDStr, accountIDStr)
-	// if err != nil {
-	// 	ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	// 	return
-	// }
-
 	// 更新結果を返却
 	ctx.JSON(http.StatusOK, gin.H{"message": "task updated"})
 }
 
 func (c TaskController) DeleteTask(ctx *gin.Context) {
-	accountIDStr, exists := auth.GetAccountIDFromContext(ctx)
+	accountIDStr, exists := authhelper.GetAccountIDFromContext(ctx)
 	if !exists {
 		ctx.AbortWithStatus((http.StatusUnauthorized))
 		return

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tofustream/gin-todo-api/cmd/internal/auth/authhelper"
 )
 
 type IAccountController interface {
@@ -30,30 +31,14 @@ func NewAccountController(service IAccountApplicationService) IAccountController
 	}
 }
 
-func extractAccountID(ctx *gin.Context) (string, bool) {
-	maybeAccountID, exists := ctx.Get("accountID")
-	if !exists {
-		ctx.AbortWithStatus(http.StatusUnauthorized)
-		return "", false
-	}
-	return maybeAccountID.(string), true
-}
-
-func parseJSON(ctx *gin.Context, obj interface{}) bool {
-	if err := ctx.ShouldBindJSON(obj); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return false
-	}
-	return true
-}
-
 // アカウントを登録
 func (c AccountController) Signup(ctx *gin.Context) {
 	var json struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
-	if !parseJSON(ctx, &json) {
+	if err := ctx.ShouldBindJSON(&json); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -67,8 +52,9 @@ func (c AccountController) Signup(ctx *gin.Context) {
 }
 
 func (c AccountController) UpdateAccount(ctx *gin.Context) {
-	accountIDStr, ok := extractAccountID(ctx)
-	if !ok {
+	accountIDStr, exists := authhelper.GetAccountIDFromContext(ctx)
+	if !exists {
+		ctx.AbortWithStatus((http.StatusUnauthorized))
 		return
 	}
 
@@ -129,8 +115,9 @@ func (c AccountController) UpdateAccount(ctx *gin.Context) {
 }
 
 func (c AccountController) DeleteAccount(ctx *gin.Context) {
-	accountIDStr, ok := extractAccountID(ctx)
-	if !ok {
+	accountIDStr, exists := authhelper.GetAccountIDFromContext(ctx)
+	if !exists {
+		ctx.AbortWithStatus((http.StatusUnauthorized))
 		return
 	}
 
@@ -150,8 +137,9 @@ func (c AccountController) DeleteAccount(ctx *gin.Context) {
 }
 
 func (c AccountController) FindAccount(ctx *gin.Context) {
-	accountIDStr, ok := extractAccountID(ctx)
-	if !ok {
+	accountIDStr, exists := authhelper.GetAccountIDFromContext(ctx)
+	if !exists {
+		ctx.AbortWithStatus((http.StatusUnauthorized))
 		return
 	}
 
