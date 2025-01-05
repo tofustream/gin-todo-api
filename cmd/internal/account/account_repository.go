@@ -6,13 +6,15 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/tofustream/gin-todo-api/pkg/timestamp"
 )
 
 var ErrAccountNotFound = errors.New("account not found")
 
 type IAccountRepository interface {
 	// ユーザーIDでアカウントを取得
-	FindAccount(id AccountID) (*AccountDTO, error)
+	FindAccount(id AccountID) (*FetchedAccount, error)
 
 	// メールアドレスでアカウントを取得
 	FindAccountByEmail(email AccountEmail) (*FindAccountByEmailResponseDTO, error)
@@ -34,22 +36,27 @@ func NewPostgresAccountRepository(db *sql.DB) IAccountRepository {
 	}
 }
 
-func (r PostgresAccountRepository) FindAccount(id AccountID) (*AccountDTO, error) {
+func (r PostgresAccountRepository) FindAccount(id AccountID) (*FetchedAccount, error) {
 	// ユーザーIDを使ってDBから取得したデータを返却
-	var dto AccountDTO
+	var (
+		fetchedID             string
+		fetchedEmail          string
+		fetchedHashedPassword string
+		fetchedCreatedAt      time.Time
+		fetchedUpdatedAt      time.Time
+	)
 	query := `
-		SELECT id, email, password, created_at, updated_at, is_deleted
+		SELECT id, email, password, created_at, updated_at
 		FROM accounts
 		WHERE id = $1
 		AND is_deleted = false
 	`
 	err := r.db.QueryRow(query, id.Value()).Scan(
-		&dto.ID,
-		&dto.Email,
-		&dto.Password,
-		&dto.CreatedAt,
-		&dto.UpdatedAt,
-		&dto.IsDeleted,
+		&fetchedID,
+		&fetchedEmail,
+		&fetchedHashedPassword,
+		&fetchedCreatedAt,
+		&fetchedUpdatedAt,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -58,7 +65,29 @@ func (r PostgresAccountRepository) FindAccount(id AccountID) (*AccountDTO, error
 		return nil, err
 	}
 
-	return &dto, nil
+	accountID, err := NewAccountIDFromString(fetchedID)
+	if err != nil {
+		return nil, err
+	}
+	email, err := NewAccountEmail(fetchedEmail)
+	if err != nil {
+		return nil, err
+	}
+	hashedPassword, err := NewHashedAccountPassword(fetchedHashedPassword)
+	if err != nil {
+		return nil, err
+	}
+	timeStamp, err := timestamp.NewTimestamp(fetchedCreatedAt, fetchedUpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	fetchedAccount := NewFetchedAccount(
+		accountID,
+		email,
+		hashedPassword,
+		timeStamp,
+	)
+	return &fetchedAccount, nil
 }
 
 func (r PostgresAccountRepository) FindAccountByEmail(email AccountEmail) (*FindAccountByEmailResponseDTO, error) {
