@@ -25,34 +25,30 @@ func NewAuthApplicationService(repository account.IAccountRepository) IAuthAppli
 }
 
 func (s *AuthApplicationService) Login(email string, password string) (*string, error) {
-	emailValue, err := account.NewAccountEmail(email)
+	emailInstance, err := account.NewAccountEmail(email)
 	if err != nil {
 		return nil, err
 	}
-	dto, err := s.repository.FindAccountByEmail(emailValue)
+	fetchedAccount, err := s.repository.FindAccountByEmail(emailInstance)
 	if err != nil {
 		return nil, err
 	}
 
-	passwordValue, err := account.NewAccountPassword(password)
+	passwordInstance, err := account.NewAccountPassword(password)
 	if err != nil {
 		return nil, err
 	}
-	if err := bcrypt.CompareHashAndPassword([]byte(dto.Password), []byte(passwordValue.Plain())); err != nil {
+	if err := bcrypt.CompareHashAndPassword(
+		[]byte(fetchedAccount.HashedPassword().Value()),
+		[]byte(passwordInstance.Plain()),
+	); err != nil {
 		return nil, errors.New("invalid credentials")
 	}
 
-	accountIDValue, err := account.NewAccountIDFromUUID(dto.ID)
+	token, err := createToken(fetchedAccount.ID(), emailInstance)
 	if err != nil {
 		return nil, err
 	}
-	token, err := createToken(accountIDValue, emailValue)
-	if err != nil {
-		return nil, err
-	}
-
-	// 環境変数を設定
-	os.Setenv("SECRET_KEY", "your_secret_key")
 
 	return token, nil
 }

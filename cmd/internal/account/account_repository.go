@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/tofustream/gin-todo-api/pkg/timestamp"
@@ -17,7 +16,7 @@ type IAccountRepository interface {
 	FindAccount(id AccountID) (*FetchedAccount, error)
 
 	// メールアドレスでアカウントを取得
-	FindAccountByEmail(email AccountEmail) (*FindAccountByEmailResponseDTO, error)
+	FindAccountByEmail(email AccountEmail) (*FetchedAccount, error)
 
 	// 新しいユーザーを追加
 	AddAccount(account Account) error
@@ -90,28 +89,57 @@ func (r PostgresAccountRepository) FindAccount(id AccountID) (*FetchedAccount, e
 	return &fetchedAccount, nil
 }
 
-func (r PostgresAccountRepository) FindAccountByEmail(email AccountEmail) (*FindAccountByEmailResponseDTO, error) {
-	// 専用のDTOを使ってDBから取得したデータを返却
-	var dto FindAccountByEmailResponseDTO
+func (r PostgresAccountRepository) FindAccountByEmail(email AccountEmail) (*FetchedAccount, error) {
+	var (
+		fetchedID             string
+		fetchedEmail          string
+		fetchedHashedPassword string
+		fetchedCreatedAt      time.Time
+		fetchedUpdatedAt      time.Time
+	)
 	query := `
-		SELECT id, email, password
+		SELECT id, email, password, created_at, updated_at
 		FROM accounts
 		WHERE email = $1
 		AND is_deleted = false
 	`
 	err := r.db.QueryRow(query, email.Value()).Scan(
-		&dto.ID,
-		&dto.Email,
-		&dto.Password,
+		&fetchedID,
+		&fetchedEmail,
+		&fetchedHashedPassword,
+		&fetchedCreatedAt,
+		&fetchedUpdatedAt,
 	)
-	log.Printf("account_id: %s", dto.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrAccountNotFound
 		}
 		return nil, err
 	}
-	return &dto, nil
+
+	accountID, err := NewAccountIDFromString(fetchedID)
+	if err != nil {
+		return nil, err
+	}
+	fechedEmailInstance, err := NewAccountEmail(fetchedEmail)
+	if err != nil {
+		return nil, err
+	}
+	hashedPassword, err := NewHashedAccountPassword(fetchedHashedPassword)
+	if err != nil {
+		return nil, err
+	}
+	timeStamp, err := timestamp.NewTimestamp(fetchedCreatedAt, fetchedUpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	fetchedAccount := NewFetchedAccount(
+		accountID,
+		fechedEmailInstance,
+		hashedPassword,
+		timeStamp,
+	)
+	return &fetchedAccount, nil
 }
 
 func (r PostgresAccountRepository) AddAccount(account Account) error {
