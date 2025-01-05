@@ -11,7 +11,7 @@ import (
 
 type ITaskRepository interface {
 	FindAllTasksByAccountID(accountID account.AccountID) ([]TaskDTO, error)
-	FindTask(taskID TaskID, accountID account.AccountID) (Task, error)
+	FindTask(taskID TaskID, accountID account.AccountID) (*Task, error)
 	AddTask(task Task) error
 	UpdateTask(task Task) error
 }
@@ -61,21 +61,21 @@ func (r PostgresTaskRepository) FindAllTasksByAccountID(
 	return tasks, nil
 }
 
-func (r PostgresTaskRepository) FindTask(taskID TaskID, accountID account.AccountID) (Task, error) {
+func (r PostgresTaskRepository) FindTask(taskID TaskID, accountID account.AccountID) (*Task, error) {
 	query := "SELECT * FROM tasks WHERE id = $1 AND account_id = $2 AND is_deleted = false"
 	rows := r.db.QueryRow(query, taskID.Value(), accountID.String())
 
 	fetchedData, err := scanRowForFindTask(rows)
 	if err != nil {
-		return Task{}, fmt.Errorf("failed to scan row: %w", err)
+		return nil, fmt.Errorf("failed to scan row: %w", err)
 	}
 
 	task, err := createTaskFromFetchedData(fetchedData)
 	if err != nil {
-		return Task{}, fmt.Errorf("failed to create task: %w", err)
+		return nil, fmt.Errorf("failed to create task: %w", err)
 	}
 
-	return *task, nil
+	return task, nil
 }
 
 func scanRowForFindTask(rows *sql.Row) (map[string]interface{}, error) {

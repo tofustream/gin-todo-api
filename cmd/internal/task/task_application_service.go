@@ -47,7 +47,7 @@ func (s TaskApplicationService) FindTask(taskID string, accountID string) (*Task
 		return nil, err
 	}
 
-	return taskToDTO(task), nil
+	return taskToDTO(*task), nil
 }
 
 func (s TaskApplicationService) CreateTask(description string, accountID string) error {
