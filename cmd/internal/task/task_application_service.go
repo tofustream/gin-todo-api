@@ -25,9 +25,15 @@ func (s TaskApplicationService) FindAllTasksByAccountID(accountID string) ([]Tas
 	if err != nil {
 		return nil, err
 	}
-	dtos, err := s.repository.FindAllTasksByAccountID(accountIDInstance)
+	tasks, err := s.repository.FindAllTasksByAccountID(accountIDInstance)
 	if err != nil {
 		return nil, err
+	}
+
+	dtos := make([]TaskDTO, 0)
+	for _, task := range tasks {
+		dto := taskToDTO(task)
+		dtos = append(dtos, *dto)
 	}
 	return dtos, nil
 }
