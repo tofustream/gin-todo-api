@@ -39,7 +39,3 @@ This is a simple Todo API built with Gin and PostgreSQL.
 - `POST /tasks` - Create a new task (requires authentication)
 - `PATCH /tasks/:id` - Update a task (requires authentication)
 - `DELETE /tasks/:id` - Delete a task (requires authentication)
-
-## License
-
-This project is licensed under the MIT License.
