@@ -19,7 +19,8 @@ RUN go mod download
 # ソースコードをすべてコピー
 COPY . .
 
-RUN chmod +x ./entrypoint.sh
+# 実行権限を設定
+RUN chmod +x /app/entrypoint.sh
 
 # エントリーポイントを設定
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]
